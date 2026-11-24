@@ -1,0 +1,2519 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusHR Pro Ultimate - Enterprise HRMS & AI Suite</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Confetti Library (Chỉ dùng cho Thưởng Nóng) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81'
+                        }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 25px -5px rgba(99, 102, 241, 0.35)',
+                        'gold': '0 10px 30px -5px rgba(245, 158, 11, 0.35)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card { backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.45); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
+
+        @keyframes faceScanLaser {
+            0% { top: 8%; opacity: 0.25; }
+            50% { top: 88%; opacity: 1; }
+            100% { top: 8%; opacity: 0.25; }
+        }
+        .scan-laser {
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #10b981, #34d399, #10b981, transparent);
+            box-shadow: 0 0 14px 3px rgba(16, 185, 129, 0.85);
+            animation: faceScanLaser 2s infinite ease-in-out;
+        }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-view { animation: fadeSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(30px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        .toast-item { animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        .typing-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 9999px;
+            background-color: currentColor;
+            animation: typingBounce 1.2s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-100 text-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-200 selection:bg-brand-500 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Universal Modal Backdrop & Box -->
+    <div id="app-modal-backdrop" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 transition-opacity">
+        <div id="app-modal-card" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-view">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
+                <div class="flex items-center gap-2.5">
+                    <div id="modal-icon-box" class="w-8 h-8 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </div>
+                    <h3 id="modal-title" class="font-extrabold text-base">Tiêu đề Modal</h3>
+                </div>
+                <button onclick="closeAppModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="p-6 space-y-4 text-sm"></div>
+        </div>
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Mobile Sidebar Backdrop -->
+        <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 z-30 bg-slate-950/50 backdrop-blur-xs hidden lg:hidden"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-68 bg-white/95 dark:bg-slate-900/95 glass-card border-r border-slate-200/80 dark:border-slate-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col shadow-xl">
+            <div class="h-16 flex items-center justify-between px-5 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-glow">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-extrabold text-base tracking-tight bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">NexusHR</span>
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-gradient-to-r from-amber-500/15 to-orange-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">PRO</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium">Enterprise AI Suite</p>
+                    </div>
+                </div>
+                <button onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-3 py-3 space-y-1 overflow-y-auto text-xs font-semibold">
+                <p class="px-3 pt-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Vận hành & Nhân sự</p>
+                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-600 text-white shadow-md shadow-brand-500/25 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Tổng quan & Bảng Vàng</div>
+                </button>
+                <button onclick="switchTab('departments')" data-tab="departments" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="building-2" class="w-4 h-4"></i> Quản lý Phòng Ban</div>
+                </button>
+                <button onclick="switchTab('attendance')" data-tab="attendance" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="scan-face" class="w-4 h-4"></i> Điểm danh & Face ID</div>
+                </button>
+                <button onclick="switchTab('employees')" data-tab="employees" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="users" class="w-4 h-4"></i> Danh sách Nhân sự</div>
+                </button>
+                <button onclick="switchTab('leaves')" data-tab="leaves" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="calendar-off" class="w-4 h-4"></i> Nghỉ phép linh hoạt</div>
+                    <span id="leave-count-badge" class="px-1.5 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-700 font-bold">2</span>
+                </button>
+
+                <p class="px-3 pt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Tuyển dụng & Hội nhập</p>
+                <button onclick="switchTab('recruitment')" data-tab="recruitment" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="briefcase" class="w-4 h-4"></i> Tuyển dụng & Cổng Ứng viên</div>
+                    <span id="candidate-badge" class="px-1.5 py-0.5 text-[10px] rounded-full bg-indigo-100 text-indigo-700 font-bold">3</span>
+                </button>
+                <button onclick="switchTab('ai-cv-scan')" data-tab="ai-cv-scan" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="file-search" class="w-4 h-4"></i> AI Scan & Sàng lọc CV</div>
+                    <span class="px-1.5 py-0.5 text-[9px] rounded bg-purple-100 text-purple-700 font-extrabold">AI</span>
+                </button>
+                <button onclick="switchTab('lifecycle')" data-tab="lifecycle" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="git-merge" class="w-4 h-4"></i> Hội nhập & Nghỉ việc</div>
+                </button>
+
+                <p class="px-3 pt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Lương 3P, Thuế & Báo cáo</p>
+                <button onclick="switchTab('payroll')" data-tab="payroll" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="calculator" class="w-4 h-4"></i> Tính lương 3P, OT & Xoay ca</div>
+                </button>
+                <button onclick="switchTab('reports')" data-tab="reports" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Báo cáo Thuế, BHXH & CSV</div>
+                </button>
+                <button onclick="switchTab('fund')" data-tab="fund" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="wallet" class="w-4 h-4"></i> Quỹ Công ty & Phạt tự động</div>
+                </button>
+                <button onclick="switchTab('kpi-rules')" data-tab="kpi-rules" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="trophy" class="w-4 h-4"></i> Nội quy, Phạt & Thưởng</div>
+                </button>
+
+                <p class="px-3 pt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Di động, Họp & AI</p>
+                <button onclick="switchTab('mobile-ess')" data-tab="mobile-ess" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="smartphone" class="w-4 h-4"></i> Cổng Di Động Nhân Viên</div>
+                </button>
+                <button onclick="switchTab('meeting')" data-tab="meeting" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="video" class="w-4 h-4"></i> Phòng Họp Online (Zoom)</div>
+                    <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                </button>
+                <button onclick="switchTab('ai-assistant')" data-tab="ai-assistant" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition">
+                    <div class="flex items-center gap-2.5"><i data-lucide="bot" class="w-4 h-4"></i> Chatbot AI Nhân Sự & Đa Năng</div>
+                </button>
+            </nav>
+
+            <div class="p-3 border-t border-slate-200/80 dark:border-slate-800 shrink-0">
+                <div class="p-2.5 rounded-2xl bg-slate-100/80 dark:bg-slate-800/80 flex items-center gap-3 border border-slate-200/50 dark:border-slate-700/50">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tung" alt="Avatar" class="w-9 h-9 rounded-full bg-brand-100 ring-2 ring-brand-500/30">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold truncate">Vũ Nam Tùng</p>
+                        <p class="text-[11px] text-slate-500 truncate">Trưởng phòng Nhân sự</p>
+                    </div>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Đang trực tuyến"></span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col lg:pl-68 min-w-0 overflow-hidden">
+            <header class="h-16 bg-white/80 dark:bg-slate-900/80 glass-card border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between shrink-0 z-30">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"><i data-lucide="menu" class="w-5 h-5"></i></button>
+                    <div>
+                        <h1 id="page-title" class="text-sm sm:text-lg font-extrabold tracking-tight truncate">Tổng quan & Bảng Vàng Vinh Danh</h1>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <button onclick="switchTab('mobile-ess')" class="hidden md:flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-950/60 text-brand-600 dark:text-brand-300 border border-brand-200/80 dark:border-brand-800 rounded-xl text-xs font-bold hover:bg-indigo-100 transition">
+                        <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> App Di Động
+                    </button>
+                    <button onclick="openHotRewardModal()" class="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:brightness-110 text-white rounded-xl text-xs font-extrabold shadow-gold transition transform hover:scale-[1.02]">
+                        <i data-lucide="award" class="w-4 h-4"></i> <span>Thưởng Nóng AI</span>
+                    </button>
+                    <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:scale-105 transition" title="Đổi giao diện Sáng/Tối">
+                        <i id="theme-icon" data-lucide="moon" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+                <!-- 1. DASHBOARD -->
+                <div id="view-dashboard" class="space-y-6 animate-view">
+                    <div class="bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-700 text-white p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div class="absolute -right-12 -bottom-12 w-72 h-72 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="absolute left-1/3 -top-16 w-48 h-48 bg-amber-400/15 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="space-y-2.5 z-10">
+                            <span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
+                                🌟 Bảng Vàng Vinh Danh Tuần Này
+                            </span>
+                            <h2 id="gold-board-winner" class="text-2xl sm:text-3xl font-extrabold tracking-tight">Nhân Viên Xuất Sắc: Nguyễn Văn An</h2>
+                            <p id="gold-board-desc" class="text-sm text-indigo-100 max-w-xl leading-relaxed">Đạt 145% KPI chuyên môn, check-in đúng giờ 100% và hỗ trợ đồng nghiệp tích cực. Sẵn sàng trao phần thưởng nóng từ quỹ công ty!</p>
+                        </div>
+                        <button onclick="triggerHotReward('Nguyễn Văn An', 1000000, 'Nhân viên xuất sắc Bảng Vàng tuần')" class="px-6 py-3.5 bg-white text-brand-700 font-extrabold text-sm rounded-2xl shadow-xl hover:bg-amber-50 transition transform hover:scale-105 shrink-0 z-10 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i> Gửi Thưởng Nóng Ngay
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-400 uppercase">Tổng nhân sự</span>
+                                <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-brand-600 flex items-center justify-center"><i data-lucide="users" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 class="text-2xl font-extrabold mt-2" id="dash-total-emp">4 nhân viên</h3>
+                            <p class="text-xs text-emerald-600 mt-1 font-semibold">3 phòng ban hoạt động</p>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-400 uppercase">Hồ sơ ứng tuyển</span>
+                                <div class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center"><i data-lucide="briefcase" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 class="text-2xl font-extrabold mt-2 text-brand-600" id="dash-candidate-count">3 ứng viên</h3>
+                            <p class="text-xs text-slate-500 mt-1">Cổng Ứng Viên 1-Click Apply</p>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-400 uppercase">Quỹ Công ty</span>
+                                <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center"><i data-lucide="wallet" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 class="text-2xl font-extrabold mt-2 text-emerald-600" id="dash-fund-val">4,850,000 đ</h3>
+                            <p class="text-xs text-slate-500 mt-1">Minh bạch thu/chi tự động</p>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-400 uppercase">Tổng quỹ lương Net</span>
+                                <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center"><i data-lucide="banknote" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 class="text-2xl font-extrabold mt-2 text-purple-600" id="dash-payroll-total">0 đ</h3>
+                            <p class="text-xs text-slate-500 mt-1">Đã tính 3P, OT & khấu trừ</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-base">Biểu đồ chuyên cần tuần</h3>
+                                <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg">Tỷ lệ đúng giờ 96.4%</span>
+                            </div>
+                            <div class="h-64"><canvas id="attendanceChart"></canvas></div>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                            <h3 class="font-bold text-base mb-4">Cơ cấu phòng ban</h3>
+                            <div class="h-64 flex items-center justify-center"><canvas id="deptChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. DEPARTMENTS -->
+                <div id="view-departments" class="space-y-6 hidden animate-view">
+                    <div class="flex flex-wrap justify-between items-center gap-3">
+                        <div>
+                            <h2 class="text-lg font-bold">Quản lý Phòng Ban & Phân công Nhân sự</h2>
+                            <p class="text-xs text-slate-500">Thêm nhân sự mới và phân bổ vào từng khối chuyên môn</p>
+                        </div>
+                        <button onclick="openAddEmployeeToDeptModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20 flex items-center gap-2 transition">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i> Thêm nhân sự vào phòng
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="px-3 py-1 bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 rounded-lg text-xs font-bold">Khối Công nghệ</span>
+                                <span id="count-tech" class="text-xs font-extrabold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">0 người</span>
+                            </div>
+                            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800" id="list-dept-tech"></div>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="px-3 py-1 bg-cyan-50 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-300 rounded-lg text-xs font-bold">Khối Truyền thông</span>
+                                <span id="count-media" class="text-xs font-extrabold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">0 người</span>
+                            </div>
+                            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800" id="list-dept-media"></div>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 rounded-lg text-xs font-bold">Khối Vận hành</span>
+                                <span id="count-ops" class="text-xs font-extrabold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">0 người</span>
+                            </div>
+                            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800" id="list-dept-ops"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ATTENDANCE + FACE ID SCANNER -->
+                <div id="view-attendance" class="space-y-6 hidden animate-view">
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-wrap justify-between items-center gap-4 shadow-sm">
+                        <div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 inline-flex items-center gap-1.5">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Chấm công sinh trắc học Face ID AI
+                            </span>
+                            <h2 id="realtime-clock" class="text-2xl sm:text-3xl font-extrabold mt-2 font-mono">--:--:--</h2>
+                            <p id="attendance-status-text" class="text-xs text-slate-500 mt-1">Trạng thái hôm nay: Sẵn sàng quét khuôn mặt để Check-in</p>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="openFaceScanner()" class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-500/20 transition flex items-center gap-2">
+                                <i data-lucide="scan-face" class="w-4 h-4"></i> Quét Khuôn Mặt Check-in
+                            </button>
+                            <button onclick="handleCheckOut()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-sm shadow transition flex items-center gap-2">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> Check-out Tan làm
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="face-scanner-panel" class="hidden bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-2xl">
+                        <div class="flex flex-wrap justify-between items-center gap-3 pb-4 mb-5 border-b border-slate-800">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                <h3 class="font-bold text-base">Hệ Thống Nhận Diện Khuôn Mặt AI (Liveness Detection)</h3>
+                            </div>
+                            <button onclick="closeFaceScanner()" class="px-3 py-1.5 bg-slate-800 hover:bg-rose-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                                <i data-lucide="x" class="w-4 h-4"></i> Đóng Camera
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                            <div class="relative rounded-2xl overflow-hidden bg-slate-950 aspect-video flex items-center justify-center border-2 border-slate-700 shadow-inner">
+                                <video id="face-video" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100 hidden"></video>
+                                <canvas id="face-canvas" class="hidden"></canvas>
+
+                                <div id="face-overlay" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                    <div class="w-44 h-56 sm:w-52 sm:h-64 rounded-[42%] border-2 border-dashed border-emerald-400/90 relative shadow-[0_0_0_9999px_rgba(2,6,23,0.45)]">
+                                        <span class="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-emerald-400 rounded-tl-xl"></span>
+                                        <span class="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-emerald-400 rounded-tr-xl"></span>
+                                        <span class="absolute -bottom-1 -left-1 w-5 h-5 border-b-4 border-l-4 border-emerald-400 rounded-bl-xl"></span>
+                                        <span class="absolute -bottom-1 -right-1 w-5 h-5 border-b-4 border-r-4 border-emerald-400 rounded-br-xl"></span>
+                                        <div id="face-laser" class="scan-laser hidden"></div>
+                                    </div>
+                                </div>
+
+                                <div id="camera-fallback-box" class="text-center p-6 space-y-2 z-10">
+                                    <i data-lucide="camera" class="w-10 h-10 text-slate-400 mx-auto"></i>
+                                    <p id="camera-status-msg" class="text-xs text-slate-300">Đang khởi động camera thiết bị...</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-2">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Hồ sơ đối chiếu sinh trắc</span>
+                                    <div class="flex items-center gap-3">
+                                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tung" alt="Avatar" class="w-12 h-12 rounded-xl bg-brand-900">
+                                        <div>
+                                            <p class="font-bold text-base">Vũ Nam Tùng</p>
+                                            <p class="text-xs text-slate-400">Mã NV: NV-001 • Trưởng phòng Nhân sự</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <div class="flex justify-between text-xs font-bold">
+                                        <span id="scan-step-label" class="text-slate-300">Đưa khuôn mặt vào giữa khung hình</span>
+                                        <span id="scan-percent" class="text-emerald-400">0%</span>
+                                    </div>
+                                    <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                                        <div id="scan-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-200" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap gap-3 pt-2">
+                                    <button id="btn-start-scan" onclick="runFaceVerification()" class="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-lg transition flex items-center justify-center gap-2">
+                                        <i data-lucide="scan" class="w-4 h-4"></i> Bắt Đầu Quét & Xác Thực
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                        <h3 class="font-bold text-base mb-4">Nhật ký chấm công hôm nay</h3>
+                        <div id="attendance-logs" class="space-y-3 text-sm text-slate-500">Chưa có thao tác chấm công mới trong phiên này.</div>
+                    </div>
+                </div>
+
+                <!-- 4. EMPLOYEES -->
+                <div id="view-employees" class="space-y-6 hidden animate-view">
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap justify-between items-center gap-3">
+                        <div class="relative flex-1 min-w-[220px]">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" id="emp-search-input" oninput="renderEmployees()" placeholder="Tìm kiếm nhân sự theo tên hoặc chức vụ..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="emp-dept-filter" onchange="renderEmployees()" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold">
+                                <option value="all">Tất cả khối phòng ban</option>
+                                <option value="tech">Khối Công nghệ</option>
+                                <option value="media">Khối Truyền thông</option>
+                                <option value="ops">Khối Vận hành</option>
+                            </select>
+                            <button onclick="openAddEmployeeToDeptModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Thêm mới
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="employee-grid"></div>
+                </div>
+
+                <!-- 5. LEAVES -->
+                <div id="view-leaves" class="space-y-6 hidden animate-view">
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+                            <div>
+                                <h3 class="font-bold text-base">Chính sách nghỉ phép linh hoạt & Duyệt đơn</h3>
+                                <p class="text-xs text-slate-500">Hỗ trợ nghỉ phép năm có lương, nghỉ bù xoay ca, nghỉ ốm BHXH và nghỉ không lương</p>
+                            </div>
+                            <button onclick="openLeaveModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow flex items-center gap-1.5">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Tạo đơn xin nghỉ
+                            </button>
+                        </div>
+                        <div class="space-y-3" id="leave-list-container"></div>
+                    </div>
+                </div>
+
+                <!-- 6. RECRUITMENT & CANDIDATE PORTAL -->
+                <div id="view-recruitment" class="space-y-6 hidden animate-view">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-5 bg-gradient-to-br from-indigo-600 via-brand-600 to-purple-700 text-white p-6 rounded-3xl shadow-xl space-y-4">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-bold">
+                                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Cổng Ứng Viên Siêu Tốc (1-Click Apply)
+                            </div>
+                            <h2 class="text-xl font-extrabold">Nộp Hồ Sơ Không Cần Email Hay Số Điện Thoại</h2>
+                            <p class="text-xs text-indigo-100 leading-relaxed">Ứng viên chỉ cần nhập tên, chọn vị trí và dán tóm tắt năng lực/link portfolio. Hệ thống tự động cấp <strong>Mã định danh ứng viên (Candidate ID)</strong> để tra cứu kết quả bảo mật.</p>
+
+                            <form onsubmit="submitZeroFrictionApplication(event)" class="space-y-3 pt-2">
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Họ và tên ứng viên *</label>
+                                    <input type="text" id="cand-name" required placeholder="VD: Phạm Minh Khôi" class="w-full px-3.5 py-2.5 rounded-xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm focus:outline-none focus:bg-white/20">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Vị trí ứng tuyển *</label>
+                                    <select id="cand-job" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/75 border border-white/25 text-white text-sm focus:outline-none">
+                                        <option value="Frontend React/JS Developer">Frontend React/JS Developer</option>
+                                        <option value="Chuyên viên AI & Automation">Chuyên viên AI & Automation</option>
+                                        <option value="Content Creator & Truyền thông">Content Creator & Truyền thông</option>
+                                        <option value="Chuyên viên Nhân sự Tổng hợp">Chuyên viên Nhân sự Tổng hợp</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Kinh nghiệm / Link Portfolio / Tóm tắt CV *</label>
+                                    <textarea id="cand-summary" required rows="3" placeholder="VD: 2 năm kinh nghiệm HTML/CSS/JS, từng làm hệ thống quản lý nội bộ, sẵn sàng nhận việc ngay..." class="w-full px-3.5 py-2.5 rounded-xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm focus:outline-none focus:bg-white/20"></textarea>
+                                </div>
+                                <p class="text-[11px] text-emerald-300 font-semibold flex items-center gap-1.5">
+                                    <i data-lucide="shield-check" class="w-4 h-4"></i> Không yêu cầu Email • Không yêu cầu Số điện thoại
+                                </p>
+                                <button type="submit" class="w-full py-3 bg-white text-brand-700 hover:bg-indigo-50 font-extrabold text-sm rounded-xl shadow-lg transition">
+                                    Nộp Hồ Sơ Ngay & Nhận Mã Tra Cứu
+                                </button>
+                            </form>
+                            <div id="cand-receipt-box" class="hidden p-3.5 rounded-2xl bg-emerald-500/20 border border-emerald-300/40 text-xs space-y-1"></div>
+                        </div>
+
+                        <div class="lg:col-span-7 space-y-4">
+                            <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                                <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+                                    <div>
+                                        <h3 class="font-bold text-base">Quy Trình Tuyển Dụng Tự Động (ATS Pipeline)</h3>
+                                        <p class="text-xs text-slate-500">Tự động phân loại hồ sơ, chấm điểm sơ bộ và chuyển đổi thành nhân viên chính thức</p>
+                                    </div>
+                                    <button onclick="openAddJobModal()" class="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5">
+                                        <i data-lucide="plus" class="w-4 h-4"></i> Đăng tin tuyển dụng
+                                    </button>
+                                </div>
+
+                                <div id="active-jobs-list" class="flex flex-wrap gap-2 pb-4 mb-4 border-b border-slate-100 dark:border-slate-800"></div>
+                                <div id="ats-candidates-list" class="space-y-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. AI SCAN CV -->
+                <div id="view-ai-cv-scan" class="space-y-6 hidden animate-view">
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
+                        <div class="flex flex-wrap justify-between items-center gap-3">
+                            <div>
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700">AI Talent Intelligence</span>
+                                <h2 class="text-lg font-extrabold mt-1">AI Scan & Phân Tích Độ Phù Hợp CV Ứng Viên</h2>
+                                <p class="text-xs text-slate-500">Dán nội dung CV hoặc tải file `.txt` để AI tự động trích xuất kỹ năng, kinh nghiệm và chấm điểm JD</p>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="fillSampleCV()" class="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-bold transition">
+                                    Nạp CV mẫu thử nghiệm
+                                </button>
+                                <label class="px-3.5 py-2 bg-indigo-50 dark:bg-indigo-950/60 text-brand-600 dark:text-brand-300 rounded-xl text-xs font-bold cursor-pointer hover:bg-indigo-100 transition flex items-center gap-1.5">
+                                    <i data-lucide="upload" class="w-3.5 h-3.5"></i> Tải file CV (.txt)
+                                    <input type="file" accept=".txt,.md,.csv" onchange="loadCVFile(event)" class="hidden">
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Vị trí & Tiêu chí tuyển dụng (JD)</label>
+                                    <input type="text" id="cv-target-jd" value="Frontend / Fullstack Web Developer (HTML, CSS, JavaScript, React, API, tối thiểu 1 năm kinh nghiệm)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">Nội dung CV ứng viên</label>
+                                    <textarea id="cv-raw-text" rows="10" placeholder="Dán toàn bộ văn bản CV ứng viên vào đây..." class="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                                </div>
+                                <button id="btn-scan-cv" onclick="runAICVScan()" class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg transition flex items-center justify-center gap-2">
+                                    <i data-lucide="sparkles" class="w-4 h-4"></i> Quét & Chấm Điểm CV Bằng AI
+                                </button>
+                            </div>
+
+                            <div id="cv-scan-result-box" class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-4">
+                                <div class="text-center py-12 space-y-2 text-slate-400">
+                                    <i data-lucide="file-search" class="w-12 h-12 mx-auto opacity-60"></i>
+                                    <p class="text-sm font-bold">Chưa có kết quả phân tích</p>
+                                    <p class="text-xs">Nhấn "Nạp CV mẫu thử nghiệm" hoặc dán CV rồi bấm Quét AI.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. ONBOARDING & OFFBOARDING LIFECYCLE -->
+                <div id="view-lifecycle" class="space-y-6 hidden animate-view">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-700">Onboarding</span>
+                                    <h3 class="font-bold text-base mt-1">Quy Trình Hội Nhập Nhân Viên Mới</h3>
+                                </div>
+                                <span id="onboarding-progress-text" class="text-sm font-extrabold text-emerald-600">75%</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div id="onboarding-progress-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 75%"></div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/50 text-xs">
+                                Nhân sự đang hội nhập: <strong>Lê Hoàng Long</strong> • Vị trí: <strong>AI Engineer</strong> • Ngày nhận việc: 15/11/2026
+                            </div>
+                            <div id="onboarding-checklist" class="space-y-2.5"></div>
+                        </div>
+
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-100 text-amber-700">Offboarding</span>
+                                    <h3 class="font-bold text-base mt-1">Quy Trình Nghỉ Việc & Bàn Giao Chuẩn Hóa</h3>
+                                </div>
+                                <span id="offboarding-progress-text" class="text-sm font-extrabold text-amber-600">50%</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div id="offboarding-progress-bar" class="h-full bg-amber-500 transition-all duration-300" style="width: 50%"></div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50 text-xs">
+                                Hồ sơ bàn giao: <strong>Đỗ Minh Tuấn (Cựu QC)</strong> • Ngày nghỉ dự kiến: 30/11/2026
+                            </div>
+                            <div id="offboarding-checklist" class="space-y-2.5"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. COMPLEX PAYROLL: 3P, PIECEWORK, OT, SHIFT ROTATION -->
+                <div id="view-payroll" class="space-y-6 hidden animate-view">
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
+                        <div class="flex flex-wrap justify-between items-center gap-3">
+                            <div>
+                                <h2 class="text-lg font-extrabold">Hệ Thống Tính Lương Đa Chính Sách (3P, Sản Phẩm, OT & Xoay Ca)</h2>
+                                <p class="text-xs text-slate-500">Tự động đồng bộ điểm KPI, giờ tăng ca (150%), phụ cấp xoay ca đêm và khấu trừ BHXH / Thuế TNCN</p>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <select id="payroll-policy-filter" onchange="renderPayrollTable()" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold">
+                                    <option value="all">Tất cả chính sách lương</option>
+                                    <option value="3P">Lương 3P (Vị trí + Năng lực + Hiệu suất)</option>
+                                    <option value="Product">Lương theo sản phẩm / Dự án</option>
+                                    <option value="Shift">Lương xoay ca & Tăng ca (OT)</option>
+                                </select>
+                                <button onclick="exportPayrollCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5">
+                                    <i data-lucide="download" class="w-4 h-4"></i> Xuất Bảng Lương Excel (.CSV)
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-extrabold">
+                                        <th class="py-3 px-3">Nhân sự</th>
+                                        <th class="py-3 px-3">Chính sách</th>
+                                        <th class="py-3 px-3 text-right">Lương P1+P2 / Cơ bản</th>
+                                        <th class="py-3 px-3 text-right">P3 (KPI) / Sản phẩm</th>
+                                        <th class="py-3 px-3 text-right">OT & Xoay ca</th>
+                                        <th class="py-3 px-3 text-right">BHXH & Thuế TNCN</th>
+                                        <th class="py-3 px-3 text-right text-emerald-600">Thực Lĩnh (Net)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payroll-table-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10. AUTOMATED DATA & REPORTS -->
+                <div id="view-reports" class="space-y-6 hidden animate-view">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Tổng quỹ lương Gross tháng 11</span>
+                            <h3 id="rep-gross" class="text-2xl font-extrabold text-brand-600">0 đ</h3>
+                            <p class="text-xs text-slate-500">Tổng hợp tự động từ dữ liệu chấm công & KPI</p>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Tổng trích nộp BHXH (10.5% NLĐ)</span>
+                            <h3 id="rep-bhxh" class="text-2xl font-extrabold text-amber-600">0 đ</h3>
+                            <p class="text-xs text-slate-500">BHYT (1.5%), BHXH (8%), BHTN (1%)</p>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
+                            <span class="text-xs font-bold text-slate-400 uppercase">Tổng Thuế TNCN Khấu Trừ</span>
+                            <h3 id="rep-tax" class="text-2xl font-extrabold text-rose-600">0 đ</h3>
+                            <p class="text-xs text-slate-500">Tính theo biểu thuế lũy tiến từng phần</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                        <h3 class="font-bold text-base">Xuất Báo Cáo Định Kỳ Tự Động (Không Cần Nhập Liệu Thủ Công)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between gap-4">
+                                <div>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">KẾ TOÁN & TÀI CHÍNH</span>
+                                    <h4 class="font-bold text-sm mt-2">Báo cáo Tổng hợp Lương 3P & OT</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Đầy đủ lương vị trí, hiệu suất KPI, tăng ca, xoay ca và thực lĩnh từng nhân viên.</p>
+                                </div>
+                                <button onclick="exportPayrollCSV()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition">Tải Báo Cáo Lương (.CSV)</button>
+                            </div>
+
+                            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between gap-4">
+                                <div>
+                                    <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-bold">CƠ QUAN THUẾ & BHXH</span>
+                                    <h4 class="font-bold text-sm mt-2">Tờ khai BHXH & Thuế TNCN Tháng</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Tự động tách tỷ lệ đóng bảo hiểm bắt buộc và thuế thu nhập cá nhân phải nộp.</p>
+                                </div>
+                                <button onclick="exportTaxInsuranceCSV()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition">Tải Báo Cáo Thuế & BHXH (.CSV)</button>
+                            </div>
+
+                            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between gap-4">
+                                <div>
+                                    <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[10px] font-bold">BAN GIÁM ĐỐC</span>
+                                    <h4 class="font-bold text-sm mt-2">Báo cáo Nhân sự & Tuyển dụng ATS</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Thống kê biến động nhân sự theo phòng ban, phễu ứng viên và quỹ nội bộ.</p>
+                                </div>
+                                <button onclick="exportHRStructureCSV()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition">Tải Báo Cáo Nhân Sự (.CSV)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 11. FUND & AUTO FINE -->
+                <div id="view-fund" class="space-y-6 hidden animate-view">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-6 rounded-2xl shadow-xl flex flex-wrap justify-between items-center gap-4">
+                        <div>
+                            <span class="text-xs uppercase bg-white/20 px-3 py-1 rounded-full font-bold">Quỹ Nội Bộ Công Ty</span>
+                            <h2 class="text-3xl font-extrabold mt-2" id="fund-balance-display">4,850,000 đ</h2>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openFundModal('in')" class="px-4 py-2 bg-white text-emerald-700 font-bold text-xs rounded-xl shadow hover:bg-emerald-50 transition">+ Thu quỹ</button>
+                            <button onclick="openFundModal('out')" class="px-4 py-2 bg-emerald-800 text-white font-bold text-xs rounded-xl shadow hover:bg-emerald-900 transition">- Chi quỹ</button>
+                        </div>
+                    </div>
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                        <h3 class="font-bold text-base mb-4">Lịch sử thu / chi & Phạt tự động</h3>
+                        <div class="space-y-3" id="fund-transactions-list"></div>
+                    </div>
+                </div>
+
+                <!-- 12. KPI & RULES -->
+                <div id="view-kpi-rules" class="space-y-6 hidden animate-view">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                            <h3 class="font-bold text-base mb-4 text-rose-600">Phạt tự động vào quỹ & trừ lương khi vi phạm</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50">
+                                    <div><p class="font-bold text-sm">Đi muộn trên 15 phút</p><p class="text-xs text-slate-500">Mức phạt: 50,000 đ</p></div>
+                                    <button onclick="applyAutoFine('Đi muộn', 50000, 'Nguyễn Văn An')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow transition">Phạt An (-50k)</button>
+                                </div>
+                                <div class="flex justify-between items-center p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50">
+                                    <div><p class="font-bold text-sm">Không check-out ra về</p><p class="text-xs text-slate-500">Mức phạt: 100,000 đ</p></div>
+                                    <button onclick="applyAutoFine('Quên check-out', 100000, 'Trần Thị Mai')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow transition">Phạt Mai (-100k)</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-base text-amber-600">Thưởng đạt KPI Tháng</h3>
+                                <button onclick="openHotRewardModal()" class="text-xs font-bold text-brand-600 hover:underline">+ Thưởng nhân sự khác</button>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50 flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold text-sm block">Vũ Nam Tùng (145% KPI)</span>
+                                    <span class="text-xs text-slate-500">Hoàn thành vượt mức kế hoạch tuyển dụng Q4</span>
+                                </div>
+                                <button onclick="triggerHotReward('Vũ Nam Tùng', 1500000, 'Đạt 145% KPI Tháng')" class="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110 text-white rounded-xl text-xs font-extrabold shadow-gold transition">Thưởng nóng 1.5tr</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 13. MOBILE ESS PORTAL -->
+                <div id="view-mobile-ess" class="space-y-6 hidden animate-view">
+                    <div class="flex flex-col items-center justify-center py-2">
+                        <p class="text-xs text-slate-500 mb-4 text-center">Mô phỏng trải nghiệm <strong>Ứng dụng Di động Nhân sự (Employee Self-Service)</strong> giúp nhân viên và quản lý tra cứu mọi lúc mọi nơi</p>
+
+                        <div class="w-full max-w-[390px] bg-slate-950 rounded-[44px] p-3 shadow-2xl border-4 border-slate-800">
+                            <div class="bg-slate-50 dark:bg-slate-900 rounded-[34px] overflow-hidden flex flex-col h-[680px]">
+                                <div class="bg-gradient-to-r from-brand-600 to-indigo-700 text-white px-6 pt-3 pb-5 rounded-b-3xl shadow-md space-y-3">
+                                    <div class="flex justify-between items-center text-[10px] opacity-80 font-bold">
+                                        <span>9:41</span>
+                                        <span>NexusHR Mobile • 5G</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2.5">
+                                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tung" class="w-10 h-10 rounded-full bg-white/20">
+                                            <div>
+                                                <p class="text-xs font-extrabold">Xin chào, Vũ Nam Tùng</p>
+                                                <p class="text-[10px] text-indigo-100">HĐLĐ Không xác định thời hạn • Mã NV-001</p>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 text-[10px] font-bold">Đang làm việc</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
+                                    <div class="grid grid-cols-3 gap-2 text-center">
+                                        <button onclick="switchMobileSubTab('payslip')" class="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold hover:border-brand-500 transition">
+                                            <i data-lucide="banknote" class="w-4 h-4 mx-auto text-emerald-600 mb-1"></i> Phiếu lương
+                                        </button>
+                                        <button onclick="switchMobileSubTab('contract')" class="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold hover:border-brand-500 transition">
+                                            <i data-lucide="file-check" class="w-4 h-4 mx-auto text-brand-600 mb-1"></i> Hợp đồng
+                                        </button>
+                                        <button onclick="switchMobileSubTab('benefits')" class="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold hover:border-brand-500 transition">
+                                            <i data-lucide="heart-handshake" class="w-4 h-4 mx-auto text-rose-500 mb-1"></i> Phúc lợi
+                                        </button>
+                                    </div>
+
+                                    <div id="mobile-ess-content" class="space-y-3"></div>
+                                </div>
+
+                                <div class="p-3 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex justify-around text-[10px] font-bold text-slate-500">
+                                    <button onclick="switchMobileSubTab('payslip')" class="text-brand-600 flex flex-col items-center gap-0.5"><i data-lucide="wallet" class="w-4 h-4"></i> Lương</button>
+                                    <button onclick="switchTab('attendance')" class="flex flex-col items-center gap-0.5 hover:text-brand-600"><i data-lucide="scan-face" class="w-4 h-4"></i> Chấm công</button>
+                                    <button onclick="switchTab('ai-assistant')" class="flex flex-col items-center gap-0.5 hover:text-brand-600"><i data-lucide="bot" class="w-4 h-4"></i> Hỏi AI</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 14. ZOOM MEETING ROOM -->
+                <div id="view-meeting" class="space-y-6 hidden animate-view">
+                    <div id="meeting-lobby" class="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-2xl flex flex-col items-center justify-center text-center h-[520px] space-y-4">
+                        <div class="w-16 h-16 rounded-2xl bg-rose-600/30 flex items-center justify-center text-rose-500 mb-2">
+                            <i data-lucide="video" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold">Phòng Họp Trực Tuyến Ban Điều Hành</h2>
+                        <p class="text-xs text-slate-400 max-w-md">Hệ thống sẽ kết nối trực tiếp Camera & Micro của máy tính hoặc điện thoại khi bạn tham gia phòng họp.</p>
+                        <button onclick="joinMeeting()" class="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i data-lucide="video" class="w-4 h-4"></i> Vào Phòng Họp & Bật Cam/Mic
+                        </button>
+                    </div>
+
+                    <div id="meeting-room" class="bg-slate-900 text-white p-4 sm:p-6 rounded-3xl shadow-2xl flex flex-col min-h-[560px] relative hidden">
+                        <div class="flex flex-wrap justify-between items-center gap-2 pb-4 border-b border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 bg-rose-600 rounded-lg text-xs font-bold animate-pulse">● Đang họp trực tuyến</span>
+                                <span id="meeting-device-status" class="text-[11px] text-emerald-400 font-semibold"></span>
+                            </div>
+                            <span id="meeting-timer" class="text-xs text-slate-400 font-mono">Thời gian: 00:00:00</span>
+                        </div>
+
+                        <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 items-center">
+                            <div class="bg-slate-800 rounded-2xl h-64 sm:h-full flex flex-col items-center justify-center border-2 border-brand-500/60 relative shadow-xl overflow-hidden">
+                                <video id="my-local-video" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100 hidden"></video>
+                                <div id="my-video-avatar" class="w-20 h-20 rounded-full bg-brand-600 flex items-center justify-center font-bold text-white text-xl shadow">VN</div>
+                                <span class="absolute bottom-3 left-3 text-xs bg-black/70 px-2.5 py-1 rounded-lg flex items-center gap-1.5 z-10">
+                                    Vũ Nam Tùng (Bạn) <span id="my-mic-status" class="text-emerald-400">🎤</span>
+                                </span>
+                            </div>
+
+                            <div class="bg-slate-800 rounded-2xl h-48 sm:h-full flex flex-col items-center justify-center border border-slate-700 relative shadow-xl">
+                                <div class="w-20 h-20 rounded-full bg-purple-600 flex items-center justify-center font-bold text-white text-xl mb-2 shadow">AN</div>
+                                <span class="absolute bottom-3 left-3 text-xs bg-black/60 px-2.5 py-1 rounded-lg">Nguyễn Văn An 🎤</span>
+                            </div>
+
+                            <div class="bg-slate-800 rounded-2xl h-48 sm:h-full flex flex-col items-center justify-center border border-slate-700 relative shadow-xl">
+                                <div class="w-20 h-20 rounded-full bg-teal-600 flex items-center justify-center font-bold text-white text-xl mb-2 shadow">MAI</div>
+                                <span class="absolute bottom-3 left-3 text-xs bg-black/60 px-2.5 py-1 rounded-lg">Trần Thị Mai 🎤</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 sm:p-4 bg-slate-950 rounded-2xl flex flex-wrap justify-center items-center gap-3">
+                            <button onclick="toggleMyMic()" id="btn-mic-toggle" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+                                <i data-lucide="mic" class="w-4 h-4 text-emerald-400"></i> <span id="txt-mic">Tắt Mic</span>
+                            </button>
+                            <button onclick="toggleMyCam()" id="btn-cam-toggle" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+                                <i data-lucide="video" class="w-4 h-4 text-emerald-400"></i> <span id="txt-cam">Tắt Cam</span>
+                            </button>
+                            <button onclick="leaveMeeting()" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> Rời Phòng Họp
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 15. SMART HR & FAST GENERAL AI CHATBOT -->
+                <div id="view-ai-assistant" class="space-y-6 hidden animate-view">
+                    <div class="bg-white/95 dark:bg-slate-900/95 glass-card rounded-3xl border border-slate-200/80 dark:border-slate-800 h-[640px] flex flex-col shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-purple-50 dark:from-purple-950/40 dark:via-slate-900 dark:to-purple-950/40">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-glow"><i data-lucide="bot" class="w-5 h-5"></i></div>
+                                <div>
+                                    <h3 class="font-extrabold text-sm">Chatbot AI Nhân Sự & Trợ Lý Đa Năng</h3>
+                                    <p id="ai-key-status" class="text-xs text-slate-500">Trạng thái: Sẵn sàng giải đáp lương, phúc lợi, nghỉ phép & mọi chủ đề</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="openAPIKeyModal()" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-purple-500 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs">
+                                    <i data-lucide="key" class="w-3.5 h-3.5 text-purple-600"></i> Cài đặt API Key
+                                </button>
+                                <button onclick="clearAIChat()" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-rose-500 rounded-xl text-xs font-bold text-slate-500 hover:text-rose-600 transition">
+                                    Xóa chat
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="px-4 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800 flex items-center gap-2 overflow-x-auto shrink-0">
+                            <span class="text-[11px] font-bold text-slate-400 shrink-0">Gợi ý nhanh:</span>
+                            <button onclick="askQuickHR('Lương tháng 11 của tôi được tính theo chính sách nào và thực lĩnh bao nhiêu?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold hover:border-purple-500 shrink-0 transition">💰 Tra cứu lương 3P</button>
+                            <button onclick="askQuickHR('Báo cáo tổng quỹ lương toàn công ty, quỹ nội bộ và danh sách ứng viên hiện tại?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold hover:border-purple-500 shrink-0 transition">📊 Tổng hợp dữ liệu HR</button>
+                            <button onclick="askQuickHR('Chính sách nghỉ phép năm, nghỉ bù xoay ca và chế độ phúc lợi của công ty như thế nào?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold hover:border-purple-500 shrink-0 transition">🌴 Nghỉ phép & Phúc lợi</button>
+                            <button onclick="askQuickHR('Tỷ lệ trích đóng BHXH và cách tính thuế TNCN của tôi tháng này ra sao?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold hover:border-purple-500 shrink-0 transition">🧾 BHXH & Thuế TNCN</button>
+                        </div>
+
+                        <div class="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4" id="ai-chat-messages">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs shrink-0">AI</div>
+                                <div class="bg-slate-100 dark:bg-slate-800 p-3.5 rounded-2xl max-w-2xl text-sm leading-relaxed">
+                                    Xin chào Tùng! Tôi là <strong>Chatbot AI Nhân Sự & Đa Năng</strong> của NexusHR. Tôi đã đồng bộ trực tiếp dữ liệu nhân sự, bảng lương 3P, quỹ nội bộ và hồ sơ ứng viên. Bạn có thể hỏi ngay mọi thông tin HR hoặc bất kỳ chủ đề nào khác!
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 border-t border-slate-200/80 dark:border-slate-800 flex gap-2 bg-white dark:bg-slate-900">
+                            <input type="text" id="ai-input" placeholder="Hỏi về lương, phúc lợi, nghỉ phép, thống kê nhân sự hoặc bất kỳ chủ đề nào..." class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <button id="ai-send-btn" onclick="sendAIChat()" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow transition flex items-center gap-1.5">
+                                <span>Gửi</span> <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-2.5-flash'];
+
+        // --- DỮ LIỆU HỆ THỐNG ---
+        let fundBalance = 4850000;
+        let fundTransactions = [
+            { title: 'Đóng quỹ tháng 11/2026', type: 'in', amount: 4800000, date: '01/11/2026' },
+            { title: 'Mua hoa sinh nhật', type: 'out', amount: 350000, date: '10/11/2026' }
+        ];
+
+        let employees = [
+            { id: 1, name: 'Vũ Nam Tùng', role: 'Trưởng phòng HR', dept: 'ops', policy: '3P', baseSalary: 22000000, kpiBonus: 6500000, otHours: 8, shiftAllowance: 1000000, fine: 0 },
+            { id: 2, name: 'Nguyễn Văn An', role: 'Senior Dev', dept: 'tech', policy: '3P', baseSalary: 24000000, kpiBonus: 7200000, otHours: 12, shiftAllowance: 0, fine: 0 },
+            { id: 3, name: 'Trần Thị Mai', role: 'Media Specialist', dept: 'media', policy: 'Product', baseSalary: 14000000, kpiBonus: 5400000, otHours: 4, shiftAllowance: 800000, fine: 0 },
+            { id: 4, name: 'Lê Hoàng Long', role: 'AI Engineer', dept: 'tech', policy: 'Shift', baseSalary: 20000000, kpiBonus: 4500000, otHours: 16, shiftAllowance: 2200000, fine: 0 }
+        ];
+
+        let leaves = [
+            { id: 1, name: 'Trần Thị Mai', type: 'Nghỉ phép năm', date: '18/11/2026', reason: 'Việc gia đình', status: 'Chờ duyệt' },
+            { id: 2, name: 'Nguyễn Văn An', type: 'Nghỉ bù xoay ca', date: '19/11/2026', reason: 'Nghỉ bù trực hệ thống đêm', status: 'Chờ duyệt' }
+        ];
+
+        let activeJobs = [
+            'Frontend React/JS Developer',
+            'Chuyên viên AI & Automation',
+            'Content Creator & Truyền thông'
+        ];
+
+        let candidates = [
+            { code: 'UV-2026-881', name: 'Ngô Minh Quân', job: 'Frontend React/JS Developer', summary: '3 năm kinh nghiệm HTML, CSS, JavaScript, Tailwind, từng xây dựng dashboard nhân sự.', score: 92, stage: 'Phỏng vấn' },
+            { code: 'UV-2026-882', name: 'Đặng Thu Hà', job: 'Content Creator & Truyền thông', summary: '2 năm viết nội dung truyền thông sự kiện, quản trị fanpage và thiết kế Canva.', score: 85, stage: 'Mới nộp' },
+            { code: 'UV-2026-883', name: 'Bùi Đức Anh', job: 'Chuyên viên AI & Automation', summary: 'Thành thạo Prompt Engineering, tích hợp Gemini API và tự động hóa quy trình.', score: 95, stage: 'Đạt vòng 1' }
+        ];
+
+        let onboardingTasks = [
+            { id: 1, text: 'Ký hợp đồng lao động điện tử & hồ sơ bảo hiểm', done: true },
+            { id: 2, text: 'Cấp phát Laptop, thẻ từ & đăng ký khuôn mặt Face ID', done: true },
+            { id: 3, text: 'Kích hoạt tài khoản Email nội bộ, Slack & Cổng di động', done: true },
+            { id: 4, text: 'Đào tạo văn hóa doanh nghiệp & bàn giao KPI tháng đầu', done: false }
+        ];
+
+        let offboardingTasks = [
+            { id: 1, text: 'Tiếp nhận đơn xin nghỉ việc & phê duyệt lộ trình bàn giao', done: true },
+            { id: 2, text: 'Bàn giao tài liệu dự án, mã nguồn & công việc đang phụ trách', done: true },
+            { id: 3, text: 'Thu hồi thiết bị công ty & khóa quyền truy cập hệ thống', done: false },
+            { id: 4, text: 'Chốt công, tất toán lương, thuế TNCN & trả sổ BHXH', done: false }
+        ];
+
+        let micActive = true;
+        let camActive = true;
+        let meetingInterval = null;
+        let meetingSeconds = 0;
+        let meetingMediaStream = null;
+        let attendanceChartInstance = null;
+        let deptChartInstance = null;
+        let chatHistory = [];
+        let faceStream = null;
+        let isScanningFace = false;
+
+        const TAB_TITLES = {
+            'dashboard': 'Tổng quan & Bảng Vàng Vinh Danh',
+            'departments': 'Quản lý Phòng Ban & Phân công',
+            'attendance': 'Điểm danh & Nhận diện Khuôn mặt AI',
+            'employees': 'Danh sách Nhân sự Công ty',
+            'leaves': 'Chính sách Nghỉ phép Linh hoạt',
+            'recruitment': 'Cổng Dịch Vụ Ứng Viên & Tuyển Dụng Tự Động',
+            'ai-cv-scan': 'AI Scan & Phân Tích Độ Phù Hợp CV',
+            'lifecycle': 'Quy Trình Hội Nhập & Nghỉ Việc Bài Bản',
+            'payroll': 'Tính Lương 3P, Sản Phẩm, Tăng Ca & Xoay Ca',
+            'reports': 'Tự Động Hóa Dữ Liệu, Thuế TNCN & Báo Cáo',
+            'fund': 'Quỹ Công ty & Phạt tự động',
+            'kpi-rules': 'Nội quy, Phạt tự động & Thưởng KPI',
+            'mobile-ess': 'Cổng Thông Tin Di Động Nhân Viên (Mobile App)',
+            'meeting': 'Phòng Họp Trực Tuyến (Zoom)',
+            'ai-assistant': 'Chatbot AI Nhân Sự & Trợ Lý Đa Năng'
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderDashboardCharts();
+            renderFund();
+            renderEmployees();
+            renderDepartments();
+            renderLeaves();
+            renderRecruitment();
+            renderLifecycle();
+            renderPayrollTable();
+            switchMobileSubTab('payslip');
+            startRealtimeClock();
+            updateAIKeyStatus();
+
+            const aiInput = document.getElementById('ai-input');
+            if (aiInput) {
+                aiInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') sendAIChat();
+                });
+            }
+
+            // Đóng modal khi bấm ra ngoài nền
+            document.getElementById('app-modal-backdrop').addEventListener('click', (e) => {
+                if (e.target.id === 'app-modal-backdrop') closeAppModal();
+            });
+        });
+
+        // --- HỆ THỐNG TOAST & MODAL CHUYÊN NGHIỆP (THAY THẾ HOÀN TOÀN ALERT/PROMPT) ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const styles = {
+                success: 'bg-emerald-600 text-white border-emerald-500',
+                error: 'bg-rose-600 text-white border-rose-500',
+                warning: 'bg-amber-500 text-white border-amber-400',
+                reward: 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white border-amber-300 shadow-gold',
+                info: 'bg-slate-900 dark:bg-slate-800 text-white border-slate-700'
+            };
+
+            const icons = {
+                success: 'check-circle-2',
+                error: 'alert-circle',
+                warning: 'alert-triangle',
+                reward: 'award',
+                info: 'info'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast-item pointer-events-auto p-3.5 rounded-2xl border shadow-xl flex items-start gap-3 text-xs font-semibold ${styles[type] || styles.info}`;
+            toast.innerHTML = `
+                <i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                <div class="flex-1 leading-relaxed">${message}</div>
+                <button onclick="this.parentElement.remove()" class="opacity-75 hover:opacity-100"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                toast.style.transition = 'all 0.25s ease';
+                setTimeout(() => toast.remove(), 260);
+            }, 4200);
+        }
+
+        function openAppModal({ title, icon = 'sparkles', iconClass = 'bg-brand-100 text-brand-600', bodyHTML }) {
+            const backdrop = document.getElementById('app-modal-backdrop');
+            document.getElementById('modal-title').innerText = title;
+            const iconBox = document.getElementById('modal-icon-box');
+            iconBox.className = `w-8 h-8 rounded-xl flex items-center justify-center ${iconClass}`;
+            iconBox.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
+            document.getElementById('modal-body').innerHTML = bodyHTML;
+            backdrop.classList.remove('hidden');
+            backdrop.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeAppModal() {
+            const backdrop = document.getElementById('app-modal-backdrop');
+            backdrop.classList.add('hidden');
+            backdrop.classList.remove('flex');
+        }
+
+        // --- KIỂM SOÁT HIỆU ỨNG CHÚC MỪNG (CHỈ Ở PHẦN THƯỞNG NÓNG) ---
+        function triggerHotReward(empName, amount = 1000000, reason = 'Thành tích xuất sắc') {
+            // Hiệu ứng confetti CHỈ chạy tại đây
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 130,
+                    spread: 75,
+                    origin: { y: 0.6 },
+                    colors: ['#f59e0b', '#10b981', '#6366f1', '#ec4899']
+                });
+            }
+
+            const emp = employees.find(e => e.name === empName);
+            if (emp) {
+                emp.kpiBonus += amount;
+                renderPayrollTable();
+            }
+
+            // Ghi nhận lịch sử thưởng vào quỹ
+            fundTransactions.unshift({
+                title: `Thưởng nóng (${empName}): ${reason}`,
+                type: 'out',
+                amount: amount,
+                date: 'Hôm nay'
+            });
+            fundBalance = Math.max(0, fundBalance - amount);
+            renderFund();
+            document.getElementById('dash-fund-val').innerText = fundBalance.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('fund-balance-display').innerText = fundBalance.toLocaleString('vi-VN') + ' đ';
+
+            // Cập nhật Bảng Vàng
+            const winnerEl = document.getElementById('gold-board-winner');
+            const descEl = document.getElementById('gold-board-desc');
+            if (winnerEl) winnerEl.innerText = `Nhân Viên Xuất Sắc: ${empName}`;
+            if (descEl) descEl.innerText = `Vừa nhận thưởng nóng ${amount.toLocaleString('vi-VN')} đ (${reason}). Đã cộng trực tiếp vào thưởng hiệu suất P3 tháng này!`;
+
+            showToast(`🎉 Chúc mừng <strong>${escapeHTML(empName)}</strong> nhận thưởng nóng <strong>+${amount.toLocaleString('vi-VN')} đ</strong> (${escapeHTML(reason)})!`, 'reward');
+        }
+
+        function openHotRewardModal() {
+            const options = employees.map(e => `<option value="${escapeHTML(e.name)}">${escapeHTML(e.name)} (${escapeHTML(e.role)})</option>`).join('');
+            openAppModal({
+                title: 'Trao Thưởng Nóng Vinh Danh',
+                icon: 'award',
+                iconClass: 'bg-amber-100 text-amber-600',
+                bodyHTML: `
+                    <form onsubmit="submitHotRewardModal(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Chọn nhân sự được vinh danh</label>
+                            <select id="reward-emp-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                                ${options}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Mức thưởng nóng (VNĐ)</label>
+                            <input type="number" id="reward-amount-input" value="1000000" min="100000" step="100000" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Lý do khen thưởng</label>
+                            <input type="text" id="reward-reason-input" value="Vượt chỉ tiêu KPI & đóng góp sáng kiến xuất sắc" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs">
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" onclick="closeAppModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">Hủy</button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-extrabold shadow-gold">Trao Thưởng Ngay</button>
+                        </div>
+                    </form>
+                `
+            });
+        }
+
+        function submitHotRewardModal(e) {
+            e.preventDefault();
+            const empName = document.getElementById('reward-emp-select').value;
+            const amount = parseInt(document.getElementById('reward-amount-input').value, 10) || 1000000;
+            const reason = document.getElementById('reward-reason-input').value.trim() || 'Thành tích xuất sắc';
+            closeAppModal();
+            triggerHotReward(empName, amount, reason);
+        }
+
+        // --- TIỆN ÍCH CHUNG ---
+        function escapeHTML(str) {
+            return String(str).replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+
+        function formatAIResponse(text) {
+            let safe = escapeHTML(text);
+            safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            safe = safe.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-xs font-mono">$1</code>');
+            safe = safe.replace(/\n/g, '<br>');
+            return safe;
+        }
+
+        function startRealtimeClock() {
+            const updateClock = () => {
+                const now = new Date();
+                const el = document.getElementById('realtime-clock');
+                if (el) el.innerText = now.toLocaleTimeString('vi-VN');
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
+
+        function switchTab(tabId) {
+            if (tabId !== 'attendance') closeFaceScanner();
+            if (tabId !== 'meeting') leaveMeeting();
+
+            Object.keys(TAB_TITLES).forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('hidden');
+            });
+
+            const target = document.getElementById(`view-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            document.getElementById('page-title').innerText = TAB_TITLES[tabId] || 'NexusHR Pro Ultimate';
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.tab === tabId) {
+                    btn.className = 'nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-brand-600 text-white shadow-md shadow-brand-500/25 transition';
+                } else {
+                    btn.className = 'nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition';
+                }
+            });
+
+            if (window.innerWidth < 1024) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('sidebar-backdrop').classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            html.classList.toggle('light');
+            const isDark = html.classList.contains('dark');
+            const icon = document.getElementById('theme-icon');
+            icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+            updateChartTheme(isDark);
+        }
+
+        // --- 1. CỔNG ỨNG VIÊN & TUYỂN DỤNG TỰ ĐỘNG (ATS) ---
+        function renderRecruitment() {
+            document.getElementById('candidate-badge').innerText = candidates.length;
+            const dashCand = document.getElementById('dash-candidate-count');
+            if (dashCand) dashCand.innerText = `${candidates.length} ứng viên`;
+
+            document.getElementById('active-jobs-list').innerHTML = activeJobs.map(j => `
+                <span class="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-brand-700 dark:text-brand-300 border border-indigo-200 dark:border-indigo-800 text-xs font-bold flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${escapeHTML(j)}
+                </span>
+            `).join('');
+
+            document.getElementById('ats-candidates-list').innerHTML = candidates.map((c, idx) => `
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 flex flex-wrap justify-between items-center gap-3">
+                    <div class="space-y-1 max-w-md">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700">${escapeHTML(c.code)}</span>
+                            <h4 class="font-bold text-sm">${escapeHTML(c.name)}</h4>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">AI Match: ${c.score}%</span>
+                        </div>
+                        <p class="text-xs font-semibold text-brand-600">${escapeHTML(c.job)}</p>
+                        <p class="text-xs text-slate-500">${escapeHTML(c.summary)}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-700">${escapeHTML(c.stage)}</span>
+                        <button onclick="hireCandidate(${idx})" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition">
+                            Tuyển thẳng
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function submitZeroFrictionApplication(e) {
+            e.preventDefault();
+            const name = document.getElementById('cand-name').value.trim();
+            const job = document.getElementById('cand-job').value;
+            const summary = document.getElementById('cand-summary').value.trim();
+            if (!name || !summary) return;
+
+            const randomCode = 'UV-2026-' + Math.floor(100 + Math.random() * 900);
+            const autoScore = Math.min(98, 76 + Math.floor(summary.length / 8));
+
+            candidates.unshift({
+                code: randomCode,
+                name,
+                job,
+                summary,
+                score: autoScore,
+                stage: 'Đã tiếp nhận tự động'
+            });
+
+            renderRecruitment();
+            const receipt = document.getElementById('cand-receipt-box');
+            receipt.classList.remove('hidden');
+            receipt.innerHTML = `
+                <p class="font-extrabold text-emerald-200">✅ Nộp hồ sơ thành công mà không cần Email/SĐT!</p>
+                <p>Mã tra cứu của <strong>${escapeHTML(name)}</strong>: <span class="font-mono font-extrabold underline">${randomCode}</span> (Điểm AI sơ loại: ${autoScore}%)</p>
+            `;
+            e.target.reset();
+            showToast(`Đã tiếp nhận hồ sơ ứng viên <strong>${escapeHTML(name)}</strong> (${randomCode})`, 'success');
+        }
+
+        function openAddJobModal() {
+            openAppModal({
+                title: 'Đăng Tin Tuyển Dụng Mới',
+                icon: 'briefcase',
+                iconClass: 'bg-indigo-100 text-brand-600',
+                bodyHTML: `
+                    <form onsubmit="submitNewJobModal(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Tên vị trí tuyển dụng *</label>
+                            <input type="text" id="new-job-title" required placeholder="VD: Product Designer (UI/UX)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" onclick="closeAppModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">Hủy</button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold shadow">Đăng Tin Ngay</button>
+                        </div>
+                    </form>
+                `
+            });
+        }
+
+        function submitNewJobModal(e) {
+            e.preventDefault();
+            const title = document.getElementById('new-job-title').value.trim();
+            if (!title) return;
+            activeJobs.push(title);
+            const select = document.getElementById('cand-job');
+            const opt = document.createElement('option');
+            opt.value = title;
+            opt.textContent = title;
+            select.appendChild(opt);
+            renderRecruitment();
+            closeAppModal();
+            showToast(`Đã đăng tin tuyển dụng <strong>${escapeHTML(title)}</strong> lên Cổng Ứng Viên!`, 'success');
+        }
+
+        function hireCandidate(idx) {
+            const cand = candidates[idx];
+            if (!cand) return;
+            const dept = cand.job.toLowerCase().includes('content') || cand.job.toLowerCase().includes('truyền thông') ? 'media'
+                : cand.job.toLowerCase().includes('nhân sự') ? 'ops' : 'tech';
+
+            employees.push({
+                id: employees.length + 1,
+                name: cand.name,
+                role: cand.job,
+                dept,
+                policy: '3P',
+                baseSalary: 16000000,
+                kpiBonus: 3000000,
+                otHours: 0,
+                shiftAllowance: 0,
+                fine: 0
+            });
+            candidates.splice(idx, 1);
+            renderRecruitment();
+            renderDepartments();
+            renderEmployees();
+            renderPayrollTable();
+            showToast(`Đã tiếp nhận <strong>${escapeHTML(cand.name)}</strong> vào danh sách nhân sự chính thức & kích hoạt quy trình Hội nhập!`, 'success');
+        }
+
+        // --- 2. AI SCAN CV ---
+        function fillSampleCV() {
+            document.getElementById('cv-raw-text').value = `HỌ VÀ TÊN: TRẦN HOÀNG MINH
+Vị trí mong muốn: Frontend / Fullstack Web Developer
+Kinh nghiệm làm việc (2.5 năm):
+- Công ty Công nghệ Sao Việt (2024 - 2026): Phát triển giao diện Web bằng HTML5, CSS3, Tailwind CSS, JavaScript (ES6+) và ReactJS. Tích hợp REST API và Gemini AI vào cổng chăm sóc khách hàng nội bộ.
+- Tối ưu hiệu năng tải trang giảm 40%, phối hợp chặt chẽ với đội Backend và UI/UX.
+Kỹ năng nổi bật: JavaScript, React, HTML/CSS, Tailwind, Git, RESTful API, AI Prompting.
+Học vấn: Cử nhân Công nghệ Thông tin - Học viện Công nghệ Bưu chính Viễn thông.`;
+            showToast('Đã nạp CV mẫu thử nghiệm vào khung phân tích.', 'info');
+        }
+
+        function loadCVFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('cv-raw-text').value = e.target.result;
+                showToast(`Đã tải nội dung tệp <strong>${escapeHTML(file.name)}</strong>`, 'success');
+            };
+            reader.readAsText(file);
+        }
+
+        function promoteScannedCVToATS(name, job, summary, score) {
+            const code = 'UV-2026-' + Math.floor(100 + Math.random() * 900);
+            candidates.unshift({ code, name, job, summary, score, stage: 'AI Sàng lọc đạt' });
+            renderRecruitment();
+            showToast(`Đã chuyển hồ sơ <strong>${escapeHTML(name)}</strong> (${code}) sang phễu Tuyển dụng ATS!`, 'success');
+        }
+
+        async function runAICVScan() {
+            const jd = document.getElementById('cv-target-jd').value.trim();
+            const cvText = document.getElementById('cv-raw-text').value.trim();
+            const resultBox = document.getElementById('cv-scan-result-box');
+            const btn = document.getElementById('btn-scan-cv');
+
+            if (!cvText) {
+                showToast('Vui lòng nhập nội dung CV hoặc bấm "Nạp CV mẫu thử nghiệm"!', 'warning');
+                return;
+            }
+
+            btn.disabled = true;
+            resultBox.innerHTML = `
+                <div class="text-center py-12 space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 mx-auto flex items-center justify-center animate-pulse">
+                        <i data-lucide="cpu" class="w-6 h-6"></i>
+                    </div>
+                    <p class="text-sm font-bold text-purple-600">AI đang quét từ khóa, đối chiếu JD và chấm điểm năng lực...</p>
+                </div>`;
+            lucide.createIcons();
+
+            const nameMatch = cvText.match(/(?:HỌ VÀ TÊN|Họ tên|Name)\s*:\s*([^\n]+)/i);
+            const extractedName = nameMatch ? nameMatch[1].trim() : 'Ứng viên từ CV Scan';
+
+            const apiKey = getGeminiKey();
+            if (apiKey) {
+                try {
+                    const prompt = `Phân tích CV ứng viên sau đây dựa trên JD: "${jd}".
+Trả về đúng định dạng tiếng Việt ngắn gọn, rõ ràng gồm:
+- **Điểm phù hợp:** [0-100]%
+- **Kinh nghiệm ước tính:** [số năm]
+- **Kỹ năng khớp JD:** [danh sách]
+- **Điểm mạnh nổi bật:** [2 ý ngắn]
+- **Khuyến nghị tuyển dụng:** [Mời phỏng vấn ngay / Cân nhắc / Chưa phù hợp]
+
+Nội dung CV:
+${cvText}`;
+                    const aiReply = await callGeminiFast(apiKey, 'Bạn là chuyên gia AI tuyển dụng HR Tech chuyên phân tích và chấm điểm CV chính xác.', [{ role: 'user', parts: [{ text: prompt }] }]);
+                    const scoreMatch = aiReply.match(/(\d{2,3})\s*%/);
+                    const scoreVal = scoreMatch ? Math.min(99, parseInt(scoreMatch[1], 10)) : 88;
+
+                    resultBox.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-700 text-xs font-extrabold">Kết quả phân tích từ Gemini AI</span>
+                                <span class="text-xs text-emerald-600 font-bold">● Độ tin cậy cao</span>
+                            </div>
+                            <div class="text-xs leading-relaxed bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">${formatAIResponse(aiReply)}</div>
+                            <button onclick="promoteScannedCVToATS('${escapeHTML(extractedName)}', '${escapeHTML(jd.split('(')[0].trim())}', 'Hồ sơ sàng lọc qua AI Scan CV', ${scoreVal})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition">
+                                + Chuyển Ứng Viên Vào Phễu Tuyển Dụng ATS
+                            </button>
+                        </div>`;
+                    btn.disabled = false;
+                    return;
+                } catch (err) {
+                    // Fallback sang bộ phân tích cục bộ
+                }
+            }
+
+            setTimeout(() => {
+                const keywords = ['html', 'css', 'javascript', 'react', 'tailwind', 'api', 'ai', 'python', 'node', 'git', 'sql', 'ui/ux', 'excel', 'quản lý'];
+                const lowerCV = cvText.toLowerCase();
+                const matched = keywords.filter(k => lowerCV.includes(k));
+                const expMatch = cvText.match(/(\d+(?:\.\d+)?)\s*năm/i);
+                const expYears = expMatch ? expMatch[1] + ' năm' : '1+ năm (tự động nhận diện)';
+                const score = Math.min(97, 62 + matched.length * 5);
+
+                resultBox.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-[11px] font-bold uppercase text-slate-400">Điểm phù hợp JD</span>
+                                <h3 class="text-3xl font-extrabold text-emerald-600">${score}%</h3>
+                            </div>
+                            <span class="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 text-xs font-extrabold">
+                                ${score >= 80 ? '✅ Đề xuất: Mời phỏng vấn vòng 1' : '⚠️ Đề xuất: Xem xét thêm'}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <span class="text-slate-400 block">Kinh nghiệm trích xuất</span>
+                                <strong class="text-sm">${escapeHTML(expYears)}</strong>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <span class="text-slate-400 block">Từ khóa khớp JD</span>
+                                <strong class="text-sm">${matched.length} kỹ năng cốt lõi</strong>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <p class="text-xs font-bold">Kỹ năng trích xuất tự động:</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${(matched.length ? matched : ['Kỹ năng chuyên môn', 'Làm việc nhóm']).map(s => `<span class="px-2.5 py-1 rounded-lg bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 text-xs font-bold uppercase">${escapeHTML(s)}</span>`).join('')}
+                            </div>
+                        </div>
+                        <button onclick="promoteScannedCVToATS('${escapeHTML(extractedName)}', '${escapeHTML(jd.split('(')[0].trim())}', 'Kinh nghiệm ${escapeHTML(expYears)} - Kỹ năng: ${escapeHTML(matched.join(', '))}', ${score})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition">
+                            + Chuyển Ứng Viên Vào Phễu Tuyển Dụng ATS
+                        </button>
+                    </div>`;
+                btn.disabled = false;
+            }, 350);
+        }
+
+        // --- 3. HỘI NHẬP (ONBOARDING) & NGHỈ VIỆC (OFFBOARDING) ---
+        function renderLifecycle() {
+            const renderList = (list, containerId, barId, textId, type) => {
+                const doneCount = list.filter(i => i.done).length;
+                const pct = Math.round((doneCount / list.length) * 100);
+                document.getElementById(barId).style.width = pct + '%';
+                document.getElementById(textId).innerText = pct + '%';
+
+                document.getElementById(containerId).innerHTML = list.map((item, idx) => `
+                    <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 cursor-pointer hover:border-brand-400 transition">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleLifecycleTask('${type}', ${idx})" class="w-4 h-4 accent-brand-600 rounded">
+                        <span class="text-xs font-semibold ${item.done ? 'line-through text-slate-400' : ''}">${escapeHTML(item.text)}</span>
+                    </label>
+                `).join('');
+            };
+
+            renderList(onboardingTasks, 'onboarding-checklist', 'onboarding-progress-bar', 'onboarding-progress-text', 'on');
+            renderList(offboardingTasks, 'offboarding-checklist', 'offboarding-progress-bar', 'offboarding-progress-text', 'off');
+        }
+
+        function toggleLifecycleTask(type, idx) {
+            if (type === 'on') onboardingTasks[idx].done = !onboardingTasks[idx].done;
+            else offboardingTasks[idx].done = !offboardingTasks[idx].done;
+            renderLifecycle();
+        }
+
+        // --- 4. TÍNH LƯƠNG PHỨC TẠP (3P, SẢN PHẨM, OT, XOAY CA) & BÁO CÁO ---
+        function computeEmployeePayroll(emp) {
+            const hourlyRate = Math.round(emp.baseSalary / 22 / 8);
+            const otPay = Math.round(emp.otHours * hourlyRate * 1.5);
+            const gross = emp.baseSalary + emp.kpiBonus + otPay + emp.shiftAllowance;
+            const bhxh = Math.round(emp.baseSalary * 0.105);
+            const taxableIncome = Math.max(0, gross - bhxh - 11000000);
+            const tax = taxableIncome <= 5000000 ? Math.round(taxableIncome * 0.05) : Math.round(250000 + (taxableIncome - 5000000) * 0.1);
+            const net = Math.max(0, gross - bhxh - tax - (emp.fine || 0));
+            return { otPay, gross, bhxh, tax, net };
+        }
+
+        function renderPayrollTable() {
+            const filter = document.getElementById('payroll-policy-filter')?.value || 'all';
+            const filtered = filter === 'all' ? employees : employees.filter(e => e.policy === filter);
+
+            let totalGross = 0, totalBHXH = 0, totalTax = 0, totalNet = 0;
+            employees.forEach(e => {
+                const p = computeEmployeePayroll(e);
+                totalGross += p.gross;
+                totalBHXH += p.bhxh;
+                totalTax += p.tax;
+                totalNet += p.net;
+            });
+
+            if (document.getElementById('dash-payroll-total')) document.getElementById('dash-payroll-total').innerText = totalNet.toLocaleString('vi-VN') + ' đ';
+            if (document.getElementById('rep-gross')) document.getElementById('rep-gross').innerText = totalGross.toLocaleString('vi-VN') + ' đ';
+            if (document.getElementById('rep-bhxh')) document.getElementById('rep-bhxh').innerText = totalBHXH.toLocaleString('vi-VN') + ' đ';
+            if (document.getElementById('rep-tax')) document.getElementById('rep-tax').innerText = totalTax.toLocaleString('vi-VN') + ' đ';
+
+            const policyNames = {
+                '3P': 'Lương 3P',
+                'Product': 'Theo Sản Phẩm',
+                'Shift': 'Xoay Ca & OT'
+            };
+
+            document.getElementById('payroll-table-body').innerHTML = filtered.map(e => {
+                const p = computeEmployeePayroll(e);
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                        <td class="py-3 px-3">
+                            <p class="font-bold">${escapeHTML(e.name)}</p>
+                            <p class="text-[11px] text-slate-400">${escapeHTML(e.role)}</p>
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-900/40 text-brand-600 dark:text-brand-300 font-bold text-[11px]">${policyNames[e.policy] || e.policy}</span>
+                        </td>
+                        <td class="py-3 px-3 text-right font-semibold">${e.baseSalary.toLocaleString('vi-VN')} đ</td>
+                        <td class="py-3 px-3 text-right text-indigo-600 font-semibold">+${e.kpiBonus.toLocaleString('vi-VN')} đ</td>
+                        <td class="py-3 px-3 text-right text-amber-600 font-semibold">+${(p.otPay + e.shiftAllowance).toLocaleString('vi-VN')} đ <span class="block text-[10px] text-slate-400">(${e.otHours}h OT)</span></td>
+                        <td class="py-3 px-3 text-right text-rose-500 font-semibold">-${(p.bhxh + p.tax + (e.fine || 0)).toLocaleString('vi-VN')} đ</td>
+                        <td class="py-3 px-3 text-right font-extrabold text-emerald-600 text-sm">${p.net.toLocaleString('vi-VN')} đ</td>
+                    </tr>`;
+            }).join('');
+        }
+
+        function downloadCSVFile(filename, rows) {
+            const csvContent = '\uFEFF' + rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            showToast(`Đã xuất tệp báo cáo <strong>${escapeHTML(filename)}</strong>`, 'success');
+        }
+
+        function exportPayrollCSV() {
+            const rows = [['Ma NV', 'Ho Ten', 'Chuc Vu', 'Chinh Sach', 'Luong Co Ban', 'Thuong 3P/San Pham', 'OT & Xoay Ca', 'BHXH (10.5%)', 'Thue TNCN', 'Phat Vi Pham', 'Thuc Linh Net']];
+            employees.forEach(e => {
+                const p = computeEmployeePayroll(e);
+                rows.push([`NV-00${e.id}`, e.name, e.role, e.policy, e.baseSalary, e.kpiBonus, p.otPay + e.shiftAllowance, p.bhxh, p.tax, e.fine || 0, p.net]);
+            });
+            downloadCSVFile('Bao_Cao_Luong_3P_NexusHR_Thang11.csv', rows);
+        }
+
+        function exportTaxInsuranceCSV() {
+            const rows = [['Ma NV', 'Ho Ten', 'Luong Dong BHXH', 'BHXH NLD (10.5%)', 'Thu Nhap Chiu Thue', 'Thue TNCN Phai Nop']];
+            employees.forEach(e => {
+                const p = computeEmployeePayroll(e);
+                rows.push([`NV-00${e.id}`, e.name, e.baseSalary, p.bhxh, p.gross - p.bhxh, p.tax]);
+            });
+            downloadCSVFile('To_Khai_BHXH_Thue_TNCN_NexusHR.csv', rows);
+        }
+
+        function exportHRStructureCSV() {
+            const rows = [['Ma NV', 'Ho Ten', 'Chuc Vu', 'Phong Ban', 'Chinh Sach Luong']];
+            employees.forEach(e => rows.push([`NV-00${e.id}`, e.name, e.role, e.dept.toUpperCase(), e.policy]));
+            downloadCSVFile('Bao_Cao_Nhan_Su_NexusHR.csv', rows);
+        }
+
+        // --- 5. MOBILE ESS PORTAL ---
+        function switchMobileSubTab(tab) {
+            const box = document.getElementById('mobile-ess-content');
+            const me = employees[0];
+            const myPay = computeEmployeePayroll(me);
+
+            if (tab === 'payslip') {
+                box.innerHTML = `
+                    <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2 shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-slate-400">PHIẾU LƯƠNG THÁNG 11/2026</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold text-[10px]">Đã chốt công</span>
+                        </div>
+                        <h4 class="text-xl font-extrabold text-emerald-600">${myPay.net.toLocaleString('vi-VN')} đ</h4>
+                        <div class="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px]">
+                            <div class="flex justify-between"><span>Lương vị trí (P1+P2):</span><strong>${me.baseSalary.toLocaleString('vi-VN')} đ</strong></div>
+                            <div class="flex justify-between"><span>Thưởng hiệu suất KPI (P3):</span><strong class="text-indigo-600">+${me.kpiBonus.toLocaleString('vi-VN')} đ</strong></div>
+                            <div class="flex justify-between"><span>OT (${me.otHours}h) & Phụ cấp ca:</span><strong class="text-amber-600">+${(myPay.otPay + me.shiftAllowance).toLocaleString('vi-VN')} đ</strong></div>
+                            <div class="flex justify-between text-rose-500"><span>BHXH & Thuế TNCN:</span><strong>-${(myPay.bhxh + myPay.tax).toLocaleString('vi-VN')} đ</strong></div>
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-1.5">
+                        <p class="font-bold">Lịch sử công tác & Chấm công</p>
+                        <p class="text-[11px] text-slate-500">• 22/22 ngày công chuẩn • 0 lần đi muộn</p>
+                        <p class="text-[11px] text-slate-500">• Phép năm còn lại: <strong>9.5 ngày</strong></p>
+                    </div>`;
+            } else if (tab === 'contract') {
+                box.innerHTML = `
+                    <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                        <span class="px-2 py-0.5 rounded bg-brand-50 text-brand-600 font-bold text-[10px]">HỢP ĐỒNG ĐIỆN TỬ</span>
+                        <h4 class="font-bold text-sm">HĐLĐ Số: 2026/HDLD-NEXUS01</h4>
+                        <p class="text-[11px] text-slate-500">Loại hợp đồng: Không xác định thời hạn</p>
+                        <p class="text-[11px] text-slate-500">Chức danh: Trưởng phòng Nhân sự (Khối Vận hành)</p>
+                        <p class="text-[11px] text-emerald-600 font-bold">✓ Đã ký số xác thực bởi Ban Giám Đốc</p>
+                    </div>`;
+            } else {
+                box.innerHTML = `
+                    <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+                        <h4 class="font-bold text-sm">Gói Phúc Lợi Toàn Diện 2026</h4>
+                        <p class="text-[11px] text-slate-500">🏥 Bảo hiểm sức khỏe PVI Care (Hạn mức 100tr/năm)</p>
+                        <p class="text-[11px] text-slate-500">🍱 Phụ cấp ăn trưa & gửi xe: 1,000,000 đ/tháng</p>
+                        <p class="text-[11px] text-slate-500">🎂 Thưởng sinh nhật, lễ Tết & Du lịch Company Trip</p>
+                    </div>`;
+            }
+            lucide.createIcons();
+        }
+
+        // --- FACE ID SCANNER (KHÔNG CONFETTI, CHỈ THÔNG BÁO TRẠNG THÁI MƯỢT MÀ) ---
+        async function openFaceScanner() {
+            const panel = document.getElementById('face-scanner-panel');
+            const video = document.getElementById('face-video');
+            const fallbackBox = document.getElementById('camera-fallback-box');
+            const statusMsg = document.getElementById('camera-status-msg');
+            const laser = document.getElementById('face-laser');
+
+            panel.classList.remove('hidden');
+            resetScanProgress();
+            lucide.createIcons();
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                video.classList.add('hidden');
+                fallbackBox.classList.remove('hidden');
+                statusMsg.innerHTML = 'Trình duyệt không hỗ trợ Camera. Bạn vẫn có thể bấm <strong>Bắt Đầu Quét</strong> ở chế độ mô phỏng.';
+                return;
+            }
+
+            try {
+                faceStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
+                });
+                video.srcObject = faceStream;
+                video.classList.remove('hidden');
+                fallbackBox.classList.add('hidden');
+                laser.classList.remove('hidden');
+            } catch (err) {
+                video.classList.add('hidden');
+                fallbackBox.classList.remove('hidden');
+                laser.classList.add('hidden');
+                statusMsg.innerHTML = `Không thể mở Camera (${escapeHTML(err.name)}). Bạn có thể dùng chế độ quét mô phỏng.`;
+            }
+        }
+
+        function closeFaceScanner() {
+            if (faceStream) {
+                faceStream.getTracks().forEach(track => track.stop());
+                faceStream = null;
+            }
+            const video = document.getElementById('face-video');
+            if (video) {
+                video.srcObject = null;
+                video.classList.add('hidden');
+            }
+            document.getElementById('face-laser')?.classList.add('hidden');
+            document.getElementById('face-scanner-panel')?.classList.add('hidden');
+            isScanningFace = false;
+        }
+
+        function resetScanProgress() {
+            document.getElementById('scan-progress-bar').style.width = '0%';
+            document.getElementById('scan-percent').innerText = '0%';
+            document.getElementById('scan-step-label').innerText = 'Đưa khuôn mặt vào giữa khung hình';
+            document.getElementById('btn-start-scan').disabled = false;
+        }
+
+        function captureFaceSnapshot() {
+            const video = document.getElementById('face-video');
+            const canvas = document.getElementById('face-canvas');
+            if (!faceStream || !video.videoWidth) return null;
+
+            canvas.width = 160;
+            canvas.height = 120;
+            const ctx = canvas.getContext('2d');
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.85);
+        }
+
+        function runFaceVerification() {
+            if (isScanningFace) return;
+            isScanningFace = true;
+
+            const btn = document.getElementById('btn-start-scan');
+            const bar = document.getElementById('scan-progress-bar');
+            const pct = document.getElementById('scan-percent');
+            const label = document.getElementById('scan-step-label');
+            const laser = document.getElementById('face-laser');
+
+            btn.disabled = true;
+            laser.classList.remove('hidden');
+
+            const steps = [
+                { p: 30, text: 'Đang định vị khuôn mặt & kiểm tra chuyển động...' },
+                { p: 68, text: 'Đang trích xuất 128 điểm đặc trưng sinh trắc...' },
+                { p: 100, text: 'Xác thực thành công: Vũ Nam Tùng (Khớp 99.4%)' }
+            ];
+
+            let idx = 0;
+            const timer = setInterval(() => {
+                const step = steps[idx];
+                bar.style.width = step.p + '%';
+                pct.innerText = step.p + '%';
+                label.innerText = step.text;
+                idx++;
+
+                if (idx >= steps.length) {
+                    clearInterval(timer);
+                    setTimeout(() => {
+                        const snapshot = captureFaceSnapshot();
+                        const time = new Date().toLocaleTimeString('vi-VN');
+                        closeFaceScanner();
+                        document.getElementById('attendance-status-text').innerText = `Đã Check-in bằng Face ID lúc ${time} (Độ khớp 99.4%)`;
+                        addAttendanceLog(`✅ Check-in Face ID thành công lúc ${time} • Vũ Nam Tùng (Khớp 99.4%)`, snapshot);
+                        showToast(`Check-in Face ID thành công lúc <strong>${time}</strong> (Độ khớp 99.4%)`, 'success');
+                    }, 500);
+                }
+            }, 600);
+        }
+
+        function handleCheckOut() {
+            const time = new Date().toLocaleTimeString('vi-VN');
+            document.getElementById('attendance-status-text').innerText = `Đã Check-out lúc ${time}`;
+            addAttendanceLog(`👋 Check-out tan làm lúc ${time}`);
+            showToast(`Check-out tan làm thành công lúc <strong>${time}</strong>!`, 'info');
+        }
+
+        function addAttendanceLog(text, snapshotUrl = null) {
+            const box = document.getElementById('attendance-logs');
+            if (box.innerText.includes('Chưa có thao tác')) box.innerHTML = '';
+
+            const photoHTML = snapshotUrl
+                ? `<img src="${snapshotUrl}" alt="Ảnh xác thực Face ID" class="w-14 h-11 rounded-lg object-cover border border-emerald-400 shadow-sm shrink-0">`
+                : `<div class="w-14 h-11 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">LOG</div>`;
+
+            const entry = `
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex items-center gap-3 text-slate-700 dark:text-slate-200 font-medium">
+                    ${photoHTML}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold truncate">${text}</p>
+                        <p class="text-[11px] text-slate-400">Thiết bị: Web Terminal • Xác thực sinh trắc học</p>
+                    </div>
+                </div>`;
+            box.innerHTML = entry + box.innerHTML;
+        }
+
+        // --- PHÒNG BAN & NHÂN SỰ ---
+        function renderDepartments() {
+            const techList = employees.filter(e => e.dept === 'tech');
+            const mediaList = employees.filter(e => e.dept === 'media');
+            const opsList = employees.filter(e => e.dept === 'ops');
+
+            document.getElementById('count-tech').innerText = techList.length + ' người';
+            document.getElementById('count-media').innerText = mediaList.length + ' người';
+            document.getElementById('count-ops').innerText = opsList.length + ' người';
+
+            document.getElementById('list-dept-tech').innerHTML = techList.map(e => `<div class="flex justify-between text-xs font-semibold py-1.5"><span>${escapeHTML(e.name)}</span><span class="text-slate-400">${escapeHTML(e.role)}</span></div>`).join('');
+            document.getElementById('list-dept-media').innerHTML = mediaList.map(e => `<div class="flex justify-between text-xs font-semibold py-1.5"><span>${escapeHTML(e.name)}</span><span class="text-slate-400">${escapeHTML(e.role)}</span></div>`).join('');
+            document.getElementById('list-dept-ops').innerHTML = opsList.map(e => `<div class="flex justify-between text-xs font-semibold py-1.5"><span>${escapeHTML(e.name)}</span><span class="text-slate-400">${escapeHTML(e.role)}</span></div>`).join('');
+
+            document.getElementById('dash-total-emp').innerText = employees.length + ' nhân viên';
+
+            if (deptChartInstance) {
+                deptChartInstance.data.datasets[0].data = [techList.length, mediaList.length, opsList.length];
+                deptChartInstance.update();
+            }
+        }
+
+        function openAddEmployeeToDeptModal() {
+            openAppModal({
+                title: 'Thêm Nhân Sự Vào Phòng Ban',
+                icon: 'user-plus',
+                iconClass: 'bg-indigo-100 text-brand-600',
+                bodyHTML: `
+                    <form onsubmit="submitAddEmployeeModal(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Họ và tên nhân sự *</label>
+                            <input type="text" id="new-emp-name" required placeholder="VD: Lê Minh Châu" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Chức danh / Vị trí *</label>
+                            <input type="text" id="new-emp-role" required placeholder="VD: Backend Developer" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Khối phòng ban</label>
+                                <select id="new-emp-dept" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                                    <option value="tech">Khối Công nghệ</option>
+                                    <option value="media">Khối Truyền thông</option>
+                                    <option value="ops">Khối Vận hành</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Chính sách lương</label>
+                                <select id="new-emp-policy" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                                    <option value="3P">Lương 3P</option>
+                                    <option value="Product">Theo Sản phẩm</option>
+                                    <option value="Shift">Xoay ca & OT</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" onclick="closeAppModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">Hủy</button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold shadow">Thêm Nhân Sự</button>
+                        </div>
+                    </form>
+                `
+            });
+        }
+
+        function submitAddEmployeeModal(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-emp-name').value.trim();
+            const role = document.getElementById('new-emp-role').value.trim();
+            const dept = document.getElementById('new-emp-dept').value;
+            const policy = document.getElementById('new-emp-policy').value;
+            if (!name || !role) return;
+
+            employees.push({
+                id: employees.length + 1,
+                name,
+                role,
+                dept,
+                policy,
+                baseSalary: 16000000,
+                kpiBonus: 2500000,
+                otHours: 0,
+                shiftAllowance: 0,
+                fine: 0
+            });
+            renderDepartments();
+            renderEmployees();
+            renderPayrollTable();
+            closeAppModal();
+            showToast(`Đã thêm nhân sự <strong>${escapeHTML(name)}</strong> vào hệ thống!`, 'success');
+        }
+
+        function renderEmployees() {
+            const deptLabels = { tech: 'Công nghệ', media: 'Truyền thông', ops: 'Vận hành' };
+            const query = (document.getElementById('emp-search-input')?.value || '').toLowerCase().trim();
+            const deptFilter = document.getElementById('emp-dept-filter')?.value || 'all';
+
+            const filtered = employees.filter(e => {
+                const matchQuery = !query || e.name.toLowerCase().includes(query) || e.role.toLowerCase().includes(query);
+                const matchDept = deptFilter === 'all' || e.dept === deptFilter;
+                return matchQuery && matchDept;
+            });
+
+            document.getElementById('employee-grid').innerHTML = filtered.length ? filtered.map(e => {
+                const pay = computeEmployeePayroll(e);
+                return `
+                    <div class="bg-white/90 dark:bg-slate-900/90 glass-card p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-500/15 to-purple-500/15 flex items-center justify-center font-extrabold text-brand-600 dark:text-brand-300 shrink-0">${escapeHTML(e.name[0].toUpperCase())}</div>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-sm truncate">${escapeHTML(e.name)}</h4>
+                                <p class="text-xs text-slate-500 truncate">${escapeHTML(e.role)} • <span class="text-brand-600 font-semibold">${deptLabels[e.dept] || e.dept}</span></p>
+                                <p class="text-[11px] text-emerald-600 font-bold mt-0.5">Net: ${pay.net.toLocaleString('vi-VN')} đ</p>
+                            </div>
+                        </div>
+                        <button onclick="triggerHotReward('${escapeHTML(e.name)}', 500000, 'Khen thưởng đột xuất')" title="Gửi thưởng nóng" class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 hover:bg-amber-100 transition shrink-0">
+                            <i data-lucide="award" class="w-4 h-4"></i>
+                        </button>
+                    </div>`;
+            }).join('') : `<div class="col-span-full text-center py-8 text-xs text-slate-400">Không tìm thấy nhân sự phù hợp với bộ lọc.</div>`;
+            lucide.createIcons();
+        }
+
+        // --- PHÒNG HỌP ZOOM ---
+        async function joinMeeting() {
+            document.getElementById('meeting-lobby').classList.add('hidden');
+            document.getElementById('meeting-room').classList.remove('hidden');
+
+            const videoEl = document.getElementById('my-local-video');
+            const avatarEl = document.getElementById('my-video-avatar');
+            const statusEl = document.getElementById('meeting-device-status');
+
+            meetingSeconds = 0;
+            clearInterval(meetingInterval);
+            meetingInterval = setInterval(() => {
+                meetingSeconds++;
+                const hrs = String(Math.floor(meetingSeconds / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((meetingSeconds % 3600) / 60)).padStart(2, '0');
+                const secs = String(meetingSeconds % 60).padStart(2, '0');
+                document.getElementById('meeting-timer').innerText = `Thời gian: ${hrs}:${mins}:${secs}`;
+            }, 1000);
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                statusEl.innerText = '⚠️ Trình duyệt không hỗ trợ Camera/Mic (Hãy mở qua HTTPS hoặc localhost)';
+                statusEl.className = 'text-[11px] text-amber-400 font-semibold';
+                lucide.createIcons();
+                return;
+            }
+
+            try {
+                meetingMediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: { echoCancellation: true, noiseSuppression: true }
+                });
+
+                videoEl.srcObject = meetingMediaStream;
+                videoEl.classList.remove('hidden');
+                avatarEl.classList.add('hidden');
+                camActive = true;
+                micActive = true;
+                statusEl.innerText = '● Camera & Micro đang hoạt động';
+                statusEl.className = 'text-[11px] text-emerald-400 font-semibold';
+            } catch (err) {
+                try {
+                    meetingMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    micActive = true;
+                    camActive = false;
+                    statusEl.innerText = '● Đã bật Micro (Không tìm thấy Camera hoặc bị chặn quyền)';
+                    statusEl.className = 'text-[11px] text-amber-400 font-semibold';
+                } catch (audioErr) {
+                    micActive = false;
+                    camActive = false;
+                    statusEl.innerText = '⚠️ Chưa cấp quyền Camera/Mic trên trình duyệt';
+                    statusEl.className = 'text-[11px] text-rose-400 font-semibold';
+                }
+            }
+
+            syncMeetingButtonsUI();
+            lucide.createIcons();
+        }
+
+        function leaveMeeting() {
+            clearInterval(meetingInterval);
+            if (meetingMediaStream) {
+                meetingMediaStream.getTracks().forEach(track => track.stop());
+                meetingMediaStream = null;
+            }
+            const videoEl = document.getElementById('my-local-video');
+            if (videoEl) {
+                videoEl.srcObject = null;
+                videoEl.classList.add('hidden');
+            }
+            document.getElementById('my-video-avatar')?.classList.remove('hidden');
+            document.getElementById('meeting-room')?.classList.add('hidden');
+            document.getElementById('meeting-lobby')?.classList.remove('hidden');
+        }
+
+        function syncMeetingButtonsUI() {
+            const btnMic = document.getElementById('btn-mic-toggle');
+            const txtMic = document.getElementById('txt-mic');
+            const micStatus = document.getElementById('my-mic-status');
+
+            if (micActive) {
+                txtMic.innerText = 'Tắt Mic';
+                btnMic.className = 'px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2';
+                micStatus.innerText = '🎤';
+            } else {
+                txtMic.innerText = 'Bật Mic';
+                btnMic.className = 'px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2';
+                micStatus.innerText = '🔇';
+            }
+
+            const btnCam = document.getElementById('btn-cam-toggle');
+            const txtCam = document.getElementById('txt-cam');
+            const videoEl = document.getElementById('my-local-video');
+            const avatarEl = document.getElementById('my-video-avatar');
+
+            if (camActive && meetingMediaStream && meetingMediaStream.getVideoTracks().length > 0) {
+                txtCam.innerText = 'Tắt Cam';
+                btnCam.className = 'px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2';
+                videoEl.classList.remove('hidden');
+                avatarEl.classList.add('hidden');
+            } else {
+                txtCam.innerText = 'Bật Cam';
+                btnCam.className = 'px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2';
+                videoEl.classList.add('hidden');
+                avatarEl.classList.remove('hidden');
+            }
+        }
+
+        async function toggleMyMic() {
+            if (!meetingMediaStream) {
+                await joinMeeting();
+                return;
+            }
+            const audioTracks = meetingMediaStream.getAudioTracks();
+            if (audioTracks.length > 0) {
+                micActive = !micActive;
+                audioTracks.forEach(t => t.enabled = micActive);
+            } else {
+                try {
+                    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioStream.getAudioTracks().forEach(t => meetingMediaStream.addTrack(t));
+                    micActive = true;
+                } catch (e) {
+                    showToast('Không thể bật Micro. Vui lòng kiểm tra quyền Micro trên trình duyệt.', 'warning');
+                }
+            }
+            syncMeetingButtonsUI();
+            lucide.createIcons();
+        }
+
+        async function toggleMyCam() {
+            if (!meetingMediaStream) {
+                await joinMeeting();
+                return;
+            }
+            const videoTracks = meetingMediaStream.getVideoTracks();
+            if (videoTracks.length > 0) {
+                camActive = !camActive;
+                videoTracks.forEach(t => t.enabled = camActive);
+            } else {
+                try {
+                    const camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                    camStream.getVideoTracks().forEach(t => meetingMediaStream.addTrack(t));
+                    document.getElementById('my-local-video').srcObject = meetingMediaStream;
+                    camActive = true;
+                } catch (e) {
+                    showToast('Không thể bật Camera. Vui lòng cấp quyền Camera cho trình duyệt.', 'warning');
+                }
+            }
+            syncMeetingButtonsUI();
+            lucide.createIcons();
+        }
+
+        // --- NGHỈ PHÉP (KHÔNG CONFETTI, CHỈ THÔNG BÁO TOAST) ---
+        function renderLeaves() {
+            const container = document.getElementById('leave-list-container');
+            if (!container) return;
+            const pendingCount = leaves.filter(l => l.status === 'Chờ duyệt').length;
+            document.getElementById('leave-count-badge').innerText = pendingCount;
+
+            container.innerHTML = leaves.map(l => `
+                <div class="flex flex-wrap justify-between items-center gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-sm">${escapeHTML(l.name)}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold">${escapeHTML(l.type)}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase ${l.status === 'Chờ duyệt' ? 'bg-amber-100 text-amber-700' : l.status === 'Đã duyệt' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${l.status}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Lý do: ${escapeHTML(l.reason)} (${escapeHTML(l.date)})</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${l.status === 'Chờ duyệt' ? `
+                            <button onclick="updateLeaveStatus(${l.id}, 'approved')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition">Duyệt</button>
+                            <button onclick="updateLeaveStatus(${l.id}, 'rejected')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow transition">Từ chối</button>
+                        ` : `<span class="text-xs font-semibold text-slate-400">Đã xử lý</span>`}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateLeaveStatus(id, action) {
+            const leave = leaves.find(l => l.id === id);
+            if (leave) {
+                leave.status = action === 'approved' ? 'Đã duyệt' : 'Đã từ chối';
+                renderLeaves();
+                if (action === 'approved') {
+                    showToast(`Đã duyệt đơn <strong>${escapeHTML(leave.type)}</strong> của <strong>${escapeHTML(leave.name)}</strong>.`, 'success');
+                } else {
+                    showToast(`Đã từ chối đơn xin nghỉ của <strong>${escapeHTML(leave.name)}</strong>.`, 'info');
+                }
+            }
+        }
+
+        function openLeaveModal() {
+            openAppModal({
+                title: 'Tạo Đơn Xin Nghỉ Phép Linh Hoạt',
+                icon: 'calendar-off',
+                iconClass: 'bg-indigo-100 text-brand-600',
+                bodyHTML: `
+                    <form onsubmit="submitLeaveModal(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Loại hình nghỉ phép</label>
+                            <select id="leave-type-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                                <option value="Nghỉ phép năm (Hưởng lương)">Nghỉ phép năm (Hưởng lương)</option>
+                                <option value="Nghỉ bù xoay ca">Nghỉ bù xoay ca</option>
+                                <option value="Nghỉ ốm (BHXH)">Nghỉ ốm (BHXH)</option>
+                                <option value="Nghỉ không lương">Nghỉ không lương</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Ngày nghỉ dự kiến</label>
+                            <input type="text" id="leave-date-input" value="26/11/2026" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Lý do xin nghỉ *</label>
+                            <textarea id="leave-reason-input" rows="2" required placeholder="Nhập lý do cụ thể..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs"></textarea>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" onclick="closeAppModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">Hủy</button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold shadow">Gửi Đơn Nghỉ Phép</button>
+                        </div>
+                    </form>
+                `
+            });
+        }
+
+        function submitLeaveModal(e) {
+            e.preventDefault();
+            const type = document.getElementById('leave-type-select').value;
+            const date = document.getElementById('leave-date-input').value.trim();
+            const reason = document.getElementById('leave-reason-input').value.trim();
+            if (!reason) return;
+            leaves.unshift({ id: Date.now(), name: 'Vũ Nam Tùng', type, date, reason, status: 'Chờ duyệt' });
+            renderLeaves();
+            closeAppModal();
+            showToast('Đã gửi đơn xin nghỉ phép thành công!', 'success');
+        }
+
+        // --- QUỸ & PHẠT TỰ ĐỘNG ---
+        function applyAutoFine(reason, amount, empName) {
+            fundBalance += amount;
+            fundTransactions.unshift({ title: `Phạt vi phạm (${empName}): ${reason}`, type: 'in', amount: amount, date: 'Hôm nay' });
+            const targetEmp = employees.find(e => e.name === empName);
+            if (targetEmp) {
+                targetEmp.fine = (targetEmp.fine || 0) + amount;
+                renderPayrollTable();
+            }
+            renderFund();
+            document.getElementById('dash-fund-val').innerText = fundBalance.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('fund-balance-display').innerText = fundBalance.toLocaleString('vi-VN') + ' đ';
+            showToast(`Đã lập biên bản phạt <strong>${escapeHTML(empName)}</strong> (${amount.toLocaleString('vi-VN')} đ) — tự động cộng quỹ & khấu trừ bảng lương.`, 'warning');
+        }
+
+        function renderFund() {
+            document.getElementById('fund-transactions-list').innerHTML = fundTransactions.map(f => `
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50">
+                    <div><p class="font-bold text-sm">${escapeHTML(f.title)}</p><p class="text-xs text-slate-400">${escapeHTML(f.date)}</p></div>
+                    <span class="font-bold text-sm ${f.type === 'in' ? 'text-emerald-600' : 'text-rose-600'}">${f.type === 'in' ? '+' : '-'}${f.amount.toLocaleString('vi-VN')} đ</span>
+                </div>
+            `).join('');
+        }
+
+        function openFundModal(type) {
+            const isIn = type === 'in';
+            openAppModal({
+                title: isIn ? 'Tạo Phiếu Thu Quỹ Nội Bộ' : 'Tạo Phiếu Chi Quỹ Nội Bộ',
+                icon: 'wallet',
+                iconClass: isIn ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600',
+                bodyHTML: `
+                    <form onsubmit="submitFundModal(event, '${type}')" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Nội dung giao dịch *</label>
+                            <input type="text" id="fund-title-input" required placeholder="${isIn ? 'VD: Đóng quỹ tháng 12' : 'VD: Liên hoan cuối tháng'}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Số tiền (VNĐ) *</label>
+                            <input type="number" id="fund-amount-input" value="200000" min="10000" step="10000" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold">
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" onclick="closeAppModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">Hủy</button>
+                            <button type="submit" class="px-5 py-2 rounded-xl ${isIn ? 'bg-emerald-600' : 'bg-rose-600'} text-white text-xs font-bold shadow">Xác Nhận</button>
+                        </div>
+                    </form>
+                `
+            });
+        }
+
+        function submitFundModal(e, type) {
+            e.preventDefault();
+            const title = document.getElementById('fund-title-input').value.trim();
+            const amount = parseInt(document.getElementById('fund-amount-input').value, 10);
+            if (!title || isNaN(amount) || amount <= 0) return;
+
+            fundBalance = Math.max(0, fundBalance + (type === 'in' ? amount : -amount));
+            fundTransactions.unshift({ title, type, amount, date: 'Hôm nay' });
+            renderFund();
+            document.getElementById('dash-fund-val').innerText = fundBalance.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('fund-balance-display').innerText = fundBalance.toLocaleString('vi-VN') + ' đ';
+            closeAppModal();
+            showToast(`Đã ghi nhận phiếu ${type === 'in' ? 'thu' : 'chi'} quỹ <strong>${amount.toLocaleString('vi-VN')} đ</strong>.`, 'success');
+        }
+
+        // --- CHATBOT AI NHÂN SỰ & PHẢN HỒI MƯỢT MÀ ---
+        function getGeminiKey() {
+            return localStorage.getItem('nexushr_gemini_api_key') || '';
+        }
+
+        function openAPIKeyModal() {
+            const currentKey = getGeminiKey();
+            openAppModal({
+                title: 'Cấu Hình Gemini AI API Key',
+                icon: 'key',
+                iconClass: 'bg-purple-100 text-purple-600',
+                bodyHTML: `
+                    <form onsubmit="saveAPIKeyModal(event)" class="space-y-3">
+                        <p class="text-xs text-slate-500 leading-relaxed">Nhập khóa API từ <strong>Google AI Studio</strong> để kích hoạt khả năng trả lời đa lĩnh vực & phân tích CV bằng mô hình Gemini thế hệ mới.</p>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Gemini API Key</label>
+                            <input type="password" id="gemini-key-input" value="${escapeHTML(currentKey)}" placeholder="AIzaSy..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono">
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <button type="button" onclick="clearAPIKey()" class="text-xs font-bold text-rose-500 hover:underline">Xóa Key</button>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="closeAppModal()" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">Đóng</button>
+                                <button type="submit" class="px-5 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold shadow">Lưu Cấu Hình</button>
+                            </div>
+                        </div>
+                    </form>
+                `
+            });
+        }
+
+        function saveAPIKeyModal(e) {
+            e.preventDefault();
+            const val = document.getElementById('gemini-key-input').value.trim();
+            localStorage.setItem('nexushr_gemini_api_key', val);
+            updateAIKeyStatus();
+            closeAppModal();
+            showToast(val ? 'Đã lưu Gemini API Key thành công!' : 'Đã chuyển sang chế độ AI Nội Bộ.', 'success');
+        }
+
+        function clearAPIKey() {
+            localStorage.removeItem('nexushr_gemini_api_key');
+            updateAIKeyStatus();
+            closeAppModal();
+            showToast('Đã xóa API Key khỏi trình duyệt.', 'info');
+        }
+
+        function updateAIKeyStatus(activeModel = '') {
+            const statusEl = document.getElementById('ai-key-status');
+            if (!statusEl) return;
+            if (getGeminiKey()) {
+                const modelBadge = activeModel ? ` (${activeModel})` : '';
+                statusEl.innerHTML = `<span class="text-emerald-600 font-semibold">● Đã kết nối Gemini API${modelBadge}</span>`;
+            } else {
+                statusEl.innerHTML = '<span class="text-amber-600 font-semibold">● Chế độ HR Nội Bộ sẵn sàng (Thêm API Key để mở khóa trả lời đa lĩnh vực)</span>';
+            }
+        }
+
+        function askQuickHR(question) {
+            document.getElementById('ai-input').value = question;
+            sendAIChat();
+        }
+
+        function clearAIChat() {
+            chatHistory = [];
+            document.getElementById('ai-chat-messages').innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs shrink-0">AI</div>
+                    <div class="bg-slate-100 dark:bg-slate-800 p-3.5 rounded-2xl max-w-2xl text-sm">Đã làm mới cuộc trò chuyện. Bạn muốn tra cứu lương, phúc lợi, nghỉ phép hay hỏi bất kỳ chủ đề nào?</div>
+                </div>`;
+        }
+
+        function getBuiltInHRReply(q) {
+            const lower = q.toLowerCase();
+            const myPay = computeEmployeePayroll(employees[0]);
+
+            if (lower.includes('tổng hợp dữ liệu') || lower.includes('toàn công ty') || lower.includes('báo cáo')) {
+                const totalNet = employees.reduce((sum, e) => sum + computeEmployeePayroll(e).net, 0);
+                return `**Báo cáo Nhanh Dữ Liệu Hệ Thống NexusHR:**\n- **Tổng nhân sự chính thức:** ${employees.length} nhân viên\n- **Tổng quỹ lương thực lĩnh (Net):** ${totalNet.toLocaleString('vi-VN')} đ\n- **Số dư quỹ nội bộ công ty:** ${fundBalance.toLocaleString('vi-VN')} đ\n- **Hồ sơ ứng viên trong phễu ATS:** ${candidates.length} ứng viên\n- **Đơn nghỉ phép chờ duyệt:** ${leaves.filter(l => l.status === 'Chờ duyệt').length} đơn`;
+            }
+            if (lower.includes('lương') || lower.includes('thực lĩnh') || lower.includes('3p')) {
+                return `**Thông tin Lương Tháng 11/2026 của Vũ Nam Tùng (Chính sách Lương 3P):**\n- **Lương vị trí & năng lực (P1+P2):** ${employees[0].baseSalary.toLocaleString('vi-VN')} đ\n- **Thưởng hiệu suất KPI (P3):** +${employees[0].kpiBonus.toLocaleString('vi-VN')} đ\n- **Tăng ca (${employees[0].otHours}h OT x 150%) & Phụ cấp ca:** +${(myPay.otPay + employees[0].shiftAllowance).toLocaleString('vi-VN')} đ\n- **Khấu trừ BHXH (10.5%) & Thuế TNCN:** -${(myPay.bhxh + myPay.tax).toLocaleString('vi-VN')} đ\n- **Thực lĩnh (Net):** **${myPay.net.toLocaleString('vi-VN')} đ**`;
+            }
+            if (lower.includes('nghỉ phép') || lower.includes('phúc lợi')) {
+                return `**Chính sách Nghỉ phép & Phúc lợi tại NexusHR:**\n- **Nghỉ phép năm:** 12 ngày/năm hưởng nguyên lương (bạn còn **9.5 ngày**).\n- **Nghỉ bù xoay ca:** Được quy đổi 1:1 khi trực ca đêm hoặc làm ngày lễ.\n- **Phúc lợi:** Bảo hiểm PVI Care 100 triệu/năm, phụ cấp ăn trưa & gửi xe 1,000,000 đ/tháng, thưởng nóng KPI hàng tuần.`;
+            }
+            if (lower.includes('bhxh') || lower.includes('thuế')) {
+                return `**Chi tiết BHXH & Thuế TNCN tháng này của bạn:**\n- **Tỷ lệ trích đóng NLĐ (10.5%):** ${myPay.bhxh.toLocaleString('vi-VN')} đ (8% BHXH, 1.5% BHYT, 1% BHTN).\n- **Thuế TNCN khấu trừ (sau giảm trừ gia cảnh 11 triệu):** ${myPay.tax.toLocaleString('vi-VN')} đ.`;
+            }
+            return null;
+        }
+
+        function getInstantSmartReply(q) {
+            const hrReply = getBuiltInHRReply(q);
+            if (hrReply) return hrReply;
+
+            const lower = q.toLowerCase().trim();
+            if (/^(hi|hello|chào|xin chào|alo|hey)\b/.test(lower)) {
+                return 'Chào Tùng! Tôi có thể giúp gì cho bạn ngay lúc này? Bạn có thể hỏi về công việc HR, lập trình, tính toán, viết nội dung hoặc bất kỳ chủ đề nào nhé!';
+            }
+            if (lower.includes('mấy giờ') || lower.includes('ngày bao nhiêu') || lower.includes('hôm nay')) {
+                const now = new Date();
+                return `Bây giờ là **${now.toLocaleTimeString('vi-VN')}**, ngày **${now.toLocaleDateString('vi-VN')}**.`;
+            }
+            if (/^[\d\s+\-*/().]+$/.test(lower) && /[\d]/.test(lower)) {
+                try {
+                    const val = Function(`"use strict"; return (${lower})`)();
+                    if (typeof val === 'number' && !isNaN(val)) {
+                        return `Kết quả phép tính \`${lower}\` = **${val.toLocaleString('vi-VN')}**`;
+                    }
+                } catch (e) {}
+            }
+            return null;
+        }
+
+        // Hiệu ứng gõ chữ mượt mà (Typewriter) cho câu trả lời AI
+        function renderTypewriterMessage(container, fullMarkdownText) {
+            const msgWrapper = document.createElement('div');
+            msgWrapper.className = 'flex items-start gap-3';
+            msgWrapper.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs shrink-0">AI</div>
+                <div class="ai-bubble bg-slate-100 dark:bg-slate-800 p-3.5 rounded-2xl max-w-2xl text-sm leading-relaxed"></div>
+            `;
+            container.appendChild(msgWrapper);
+            const bubble = msgWrapper.querySelector('.ai-bubble');
+
+            let idx = 0;
+            const step = Math.max(4, Math.ceil(fullMarkdownText.length / 45));
+            const interval = setInterval(() => {
+                idx += step;
+                if (idx >= fullMarkdownText.length) {
+                    bubble.innerHTML = formatAIResponse(fullMarkdownText);
+                    clearInterval(interval);
+                } else {
+                    bubble.innerHTML = formatAIResponse(fullMarkdownText.slice(0, idx));
+                }
+                container.scrollTop = container.scrollHeight;
+            }, 16);
+        }
+
+        async function callGeminiFast(apiKey, systemInstruction, contents) {
+            let lastError = 'Không thể kết nối Gemini API.';
+            for (const model of GEMINI_MODELS) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+                try {
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            signal: controller.signal,
+                            body: JSON.stringify({
+                                system_instruction: { parts: [{ text: systemInstruction }] },
+                                contents: contents,
+                                generationConfig: {
+                                    temperature: 0.7,
+                                    maxOutputTokens: 1024
+                                }
+                            })
+                        }
+                    );
+                    clearTimeout(timeoutId);
+                    const data = await response.json();
+                    if (response.ok && data.candidates?.length > 0) {
+                        const replyText = data.candidates[0].content?.parts?.map(p => p.text || '').join('');
+                        if (replyText) {
+                            updateAIKeyStatus(model);
+                            return replyText;
+                        }
+                    }
+                    lastError = data.error?.message || `HTTP ${response.status}`;
+                    if (lastError.toLowerCase().includes('api key not valid')) {
+                        throw new Error('API Key không hợp lệ. Vui lòng bấm "Cài đặt API Key" để nhập lại.');
+                    }
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    lastError = err.name === 'AbortError' ? 'Kết nối quá thời gian chờ.' : err.message;
+                    if (lastError.includes('API Key không hợp lệ')) throw new Error(lastError);
+                }
+            }
+            throw new Error(lastError);
+        }
+
+        async function sendAIChat() {
+            const input = document.getElementById('ai-input');
+            const sendBtn = document.getElementById('ai-send-btn');
+            const q = input.value.trim();
+            if (!q) return;
+
+            const container = document.getElementById('ai-chat-messages');
+            container.innerHTML += `<div class="flex justify-end"><div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-3.5 rounded-2xl max-w-2xl text-sm shadow-sm">${escapeHTML(q)}</div></div>`;
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
+
+            const instantReply = getInstantSmartReply(q);
+            if (instantReply) {
+                renderTypewriterMessage(container, instantReply);
+                return;
+            }
+
+            const apiKey = getGeminiKey();
+            if (!apiKey) {
+                container.innerHTML += `
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs shrink-0">!</div>
+                        <div class="bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 p-3.5 rounded-2xl max-w-2xl text-sm leading-relaxed">
+                            Để chatbot trả lời <strong>mọi câu hỏi ngoài lề</strong> (kiến thức, lập trình, đời sống, tư vấn...), bạn hãy bấm nút <strong>"Cài đặt API Key"</strong> ở góc trên khung chat và dán Gemini API Key miễn phí từ Google AI Studio vào nhé!
+                        </div>
+                    </div>`;
+                container.scrollTop = container.scrollHeight;
+                return;
+            }
+
+            sendBtn.disabled = true;
+            const loadingId = 'ai-loading-' + Date.now();
+            container.innerHTML += `
+                <div id="${loadingId}" class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs shrink-0">AI</div>
+                    <div class="bg-slate-100 dark:bg-slate-800 px-4 py-3 rounded-2xl text-purple-600 flex items-center gap-1.5">
+                        <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+                    </div>
+                </div>`;
+            container.scrollTop = container.scrollHeight;
+
+            const myPay = computeEmployeePayroll(employees[0]);
+            const systemInstruction = `Bạn là trợ lý AI thông minh, phản hồi nhanh, súc tích và thân thiện.
+- Với câu hỏi ngoài lề (lập trình, khoa học, đời sống, giải trí, học tập...): Trả lời trực tiếp, đầy đủ, tự nhiên bằng tiếng Việt, KHÔNG từ chối.
+- Với câu hỏi nội bộ NexusHR: Người dùng là Vũ Nam Tùng (Trưởng phòng HR), tổng nhân sự ${employees.length} người, lương Net của Tùng ${myPay.net.toLocaleString('vi-VN')}đ, phép năm còn 9.5 ngày, quỹ công ty ${fundBalance.toLocaleString('vi-VN')}đ, ứng viên ATS ${candidates.length} người.`;
+
+            chatHistory.push({ role: 'user', parts: [{ text: q }] });
+            if (chatHistory.length > 8) chatHistory = chatHistory.slice(-8);
+
+            try {
+                const rawReply = await callGeminiFast(apiKey, systemInstruction, chatHistory);
+                document.getElementById(loadingId)?.remove();
+                chatHistory.push({ role: 'model', parts: [{ text: rawReply }] });
+                renderTypewriterMessage(container, rawReply);
+            } catch (err) {
+                chatHistory.pop();
+                document.getElementById(loadingId)?.remove();
+                container.innerHTML += `
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-xs shrink-0">!</div>
+                        <div class="bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-300 p-3.5 rounded-2xl max-w-2xl text-sm">
+                            Lỗi kết nối AI: ${escapeHTML(err.message)}
+                        </div>
+                    </div>`;
+            } finally {
+                sendBtn.disabled = false;
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // --- BIỂU ĐỒ CHART.JS ĐỒNG BỘ DARK/LIGHT MODE ---
+        function renderDashboardCharts() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#cbd5e1' : '#475569';
+            const gridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(148, 163, 184, 0.2)';
+
+            attendanceChartInstance = new Chart(document.getElementById('attendanceChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'],
+                    datasets: [{
+                        label: 'Đúng giờ',
+                        data: [20, 22, 21, 23, 21, 19],
+                        backgroundColor: '#4f46e5',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        x: { ticks: { color: textColor }, grid: { display: false } },
+                        y: { ticks: { color: textColor }, grid: { color: gridColor } }
+                    }
+                }
+            });
+
+            deptChartInstance = new Chart(document.getElementById('deptChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Công nghệ', 'Truyền thông', 'Vận hành'],
+                    datasets: [{
+                        data: [2, 1, 1],
+                        backgroundColor: ['#4f46e5', '#06b6d4', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: { legend: { position: 'bottom', labels: { color: textColor, padding: 16 } } }
+                }
+            });
+        }
+
+        function updateChartTheme(isDark) {
+            const textColor = isDark ? '#cbd5e1' : '#475569';
+            const gridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(148, 163, 184, 0.2)';
+
+            if (attendanceChartInstance) {
+                attendanceChartInstance.options.plugins.legend.labels.color = textColor;
+                attendanceChartInstance.options.scales.x.ticks.color = textColor;
+                attendanceChartInstance.options.scales.y.ticks.color = textColor;
+                attendanceChartInstance.options.scales.y.grid.color = gridColor;
+                attendanceChartInstance.update();
+            }
+            if (deptChartInstance) {
+                deptChartInstance.options.plugins.legend.labels.color = textColor;
+                deptChartInstance.update();
+            }
+        }
+    </script>
+</body>
+</html>
